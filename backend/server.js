@@ -1,7 +1,20 @@
 const express = require("express");
 const cors = require("cors");
+const multer = require("multer");
 
 const app = express();
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+
+const upload = multer({ storage });
 
 app.use(cors());
 
@@ -18,6 +31,14 @@ app.get("/api/message", (req, res) => {
 });
 
 const PORT = 5000;
+
+app.post("/api/upload", upload.single("document"), (req, res) => {
+  res.json({
+    success: true,
+    message: "File uploaded successfully!",
+    file: req.file,
+  });
+});
 
 // Start server
 app.listen(PORT, () => {
