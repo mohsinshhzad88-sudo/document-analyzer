@@ -72,7 +72,7 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
 
     const extractedText = result.text;
 
-    const chunkSize = 3000; // characters
+    const chunkSize = 8000; // characters
     const chunks = [];
 
     for (let i = 0; i < extractedText.length; i += chunkSize) {
@@ -91,7 +91,9 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
 
 
    // 3. Send text to Groq
-  
+  fs.unlinkSync(req.file.path);
+
+
 let partialReports = [];
 
 for (const chunk of chunks) {
@@ -147,8 +149,11 @@ ${chunk}
 }
 
 partialReports.push(response.choices[0].message.content);
+// wait before next chunk
+await new Promise(resolve => setTimeout(resolve, 5000));
 
 }
+
 
 const summary = partialReports.join("\n\n");
 
