@@ -1,14 +1,22 @@
+require("dotenv").config();
 const express = require("express");
 const { PDFParse } = require("pdf-parse");
 const fs = require("fs");
 const cors = require("cors");
 const multer = require("multer");
+const Groq = require("groq-sdk");
+const path = require("path");
+
+
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+});
 
 // File storage setup
 const storage = multer.diskStorage({
@@ -39,48 +47,86 @@ app.get("/api/message", (req, res) => {
 });
 
 
-// Upload document
-app.post("/api/upload", upload.single("document"), (req, res) => {
-
-  res.json({
-    success: true,
-    message: "File uploaded successfully!",
-    file: req.file.filename,
-    path: req.file.path
-  });
-
-});
-
-
-// PDF text extraction test
-app.get("/api/test-pdf", async (req, res) => {
+app.post("/api/upload", upload.single("document"), async (req, res) => {
 
   try {
 
-    const dataBuffer = fs.readFileSync(
-      "uploadss/"+req.query.file
-    );
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded"
+      });
+    }
 
 
+    // 1. Read uploaded PDF
+    const dataBuffer = fs.readFileSync(req.file.path);
+
+
+    // 2. Extract text
     const parser = new PDFParse({
       data: dataBuffer
     });
 
-
     const result = await parser.getText();
 
+    const extractedText = result.text;
 
+
+    console.log("Text extracted:");
+    console.log(extractedText.substring(0, 300));
+
+
+   // 3. Send text to Groq
+
+const response = await groq.chat.completions.create({
+
+  model: "llama-3.1-8b-instant",
+
+  messages: [
+    {
+      role: "system",
+      content: "You are a document auditing assistant."
+    },
+
+    {
+      role: "user",
+      content: `
+Analyze this document.
+
+Provide:
+1. Summary
+2. Important points
+3. Possible issues
+4. Risk level
+
+Document:
+
+${extractedText}
+`
+    }
+  ]
+
+});
+
+
+const summary = response.choices[0].message.content;
+
+
+    // 4. Return result
     res.json({
-      text: result.text
+      success: true,
+      message: "Document analyzed successfully!",
+      summary: summary
     });
 
 
-  } catch (error) {
+  } catch(error) {
 
-    console.log("PDF ERROR:", error);
-
+    console.log("ERROR:", error);
 
     res.status(500).json({
+      success: false,
       message: error.message
     });
 
@@ -88,12 +134,13 @@ app.get("/api/test-pdf", async (req, res) => {
 
 });
 
-
-// Start server
 const PORT = 5000;
 
 app.listen(PORT, () => {
   console.log(
     `✅ Server running on http://localhost:${PORT}`
   );
+
 });
+
+
