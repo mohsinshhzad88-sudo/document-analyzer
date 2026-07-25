@@ -72,27 +72,50 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
 
     const extractedText = result.text;
 
+    const chunkSize = 3000; // characters
+    const chunks = [];
+
+    for (let i = 0; i < extractedText.length; i += chunkSize) {
+      chunks.push(extractedText.slice(i, i + chunkSize));
+    }
+
+
+          console.log("=================================");
+          console.log("Chunks created:", chunks.length);
+          console.log("Document length:", extractedText.length);
+          console.log("=================================");
+
 
     console.log("Text extracted:");
     console.log(extractedText.substring(0, 300));
 
 
    // 3. Send text to Groq
+  
+let partialReports = [];
 
-const response = await groq.chat.completions.create({
+for (const chunk of chunks) {
 
-  model: "llama-3.1-8b-instant",
+  console.log("Analyzing chunk...");
 
-  messages: [
-    {
-      role: "system",
-      content: "You are a document auditing assistant."
-    },
+  let response;
 
-    {
-      role: "user",
-      content: `
-Analyze this document.
+while (true) {
+  try {
+
+    response = await groq.chat.completions.create({
+
+      model: "llama-3.1-8b-instant",
+
+      messages: [
+        {
+          role: "system",
+          content: "You are a document auditing assistant."
+        },
+        {
+          role: "user",
+          content: `
+Analyze this document section.
 
 Provide:
 1. Summary
@@ -100,18 +123,34 @@ Provide:
 3. Possible issues
 4. Risk level
 
-Document:
+Document Section:
 
-${extractedText}
+${chunk}
 `
+        }
+      ]
+
+    });
+
+    break;
+
+  } catch (error) {
+
+    if (error.status === 429) {
+      console.log("Rate limit reached. Waiting 15 seconds...");
+      await new Promise(resolve => setTimeout(resolve, 15000));
+      continue;
     }
-  ]
 
-});
+    throw error;
+  }
+}
 
+partialReports.push(response.choices[0].message.content);
 
-const summary = response.choices[0].message.content;
+}
 
+const summary = partialReports.join("\n\n");
 
     // 4. Return result
     res.json({
