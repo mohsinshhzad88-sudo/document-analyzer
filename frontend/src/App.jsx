@@ -3,6 +3,7 @@ import { useState } from "react";
 function App() {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
+  const [summary, setSummary] = useState("");
 
   const uploadFile = async () => {
     if (!file) {
@@ -26,6 +27,7 @@ function App() {
       const data = await response.json();
 
       setMessage(data.message);
+      setSummary(data.summary);
 
     } catch (error) {
       console.error(error);
@@ -49,6 +51,24 @@ function App() {
       </button>
 
       <h3>{message}</h3>
+      
+      {summary && (
+  <div style={{ marginTop: "20px" }}>
+    <h2>AI Analysis</h2>
+    <pre
+      style={{
+        whiteSpace: "pre-wrap",
+        textAlign: "left",
+        background: "#f5f5f5",
+        padding: "15px",
+        borderRadius: "8px",
+      }}
+    >
+      {summary}
+    </pre>
+  </div>
+)}
+      
     </div>
   );
 }
