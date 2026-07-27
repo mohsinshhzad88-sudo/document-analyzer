@@ -178,13 +178,13 @@ const summary = partialReports.join("\n\n");
 
 });
 
-const PORT = 5000;
-
+const PORT = process.env.PORT || 5000;
+ 
+if(require.main === module) {
 app.listen(PORT, () => {
   console.log(
-    `✅ Server running on http://localhost:${PORT}`
-  );
-
+    `✅ Server running on http://localhost:${PORT}` );
 });
+}
 
-
+module.exports = app;
