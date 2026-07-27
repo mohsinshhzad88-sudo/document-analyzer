@@ -12,15 +12,22 @@ const path = require("path");
 const app = express();
 
 app.use(cors({
-  origin: [
-    "https://document-analyzer-351n.vercel.app",
-    "http://localhost:5173"
-  ],
-  methods: ["GET", "POST"],
+  origin: "https://document-analyzer-351n.vercel.app",
+  methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
 }));
-
   
+app.use((req, res, next) => {
+  res.header(
+    "Access-Control-Allow-Origin",
+    "https://document-analyzer-351n.vercel.app"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Content-Type"
+  );
+  next();
+});
 
 app.use(express.json());
 
