@@ -11,7 +11,17 @@ const path = require("path");
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://document-analyzer-351n.vercel.app",
+    "http://localhost:5173"
+  ],
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"]
+}));
+
+  app.options("*", cors()); 
+  
 app.use(express.json());
 
 const groq = new Groq({
