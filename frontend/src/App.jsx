@@ -23,7 +23,7 @@ function App() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/upload",
+         "https://document-analyzer-rl4bm71bi-mohsin-shahzad.vercel.app/api/upload",
         {
           method: "POST",
           body: formData,
