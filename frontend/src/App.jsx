@@ -1,9 +1,12 @@
 import { useState } from "react";
+import "./App.css";
+import SkeletonReport from "./components/SkeletonReport";
 
 function App() {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
   const [summary, setSummary] = useState("");
+  const [Loading, setLoading] = useState(false);
 
   const uploadFile = async () => {
     if (!file) {
@@ -11,8 +14,11 @@ function App() {
       return;
     }
 
-    const formData = new FormData();
+        setLoading(true);
+        setMessage("");
+        setSummary("");
 
+    const formData = new FormData();
     formData.append("document", file);
 
     try {
@@ -29,10 +35,15 @@ function App() {
       setMessage(data.message);
       setSummary(data.summary);
 
+      setLoading(false);
+
+
     } catch (error) {
       console.error(error);
       setMessage("Upload failed");
+      setLoading(false);
     }
+
   };
 
   return (
@@ -40,21 +51,30 @@ function App() {
       <h1>Document Analyzer</h1>
 
       <input
+        id="fileInput"
         type="file"
+        style={{display: "none"}}
         onChange={(e) => setFile(e.target.files[0])}
       />
+ 
+        <label htmlFor="fileInput" className="file-button">
+              {file ? file.name : "📂 Choose Document"}
+        </label>
 
       <br /><br />
 
-      <button onClick={uploadFile}>
-        Upload Document
+      <button onClick={uploadFile} disabled={Loading}>
+        {Loading? "Analyzing..." : "Upload Document"}
       </button>
 
       <h3>{message}</h3>
       
-      {summary && (
+  {Loading && <SkeletonReport />}
+
+{!Loading && summary && (
   <div style={{ marginTop: "20px" }}>
     <h2>AI Analysis</h2>
+
     <pre
       style={{
         whiteSpace: "pre-wrap",

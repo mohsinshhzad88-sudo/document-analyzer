@@ -72,11 +72,11 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
 
     const extractedText = result.text;
 
-    const chunkSize = 8000; // characters
+    const CHUNK_SIZE = 8000; // characters
     const chunks = [];
 
-    for (let i = 0; i < extractedText.length; i += chunkSize) {
-      chunks.push(extractedText.slice(i, i + chunkSize));
+    for (let i = 0; i < extractedText.length; i += CHUNK_SIZE) {
+      chunks.push(extractedText.slice(i, i + CHUNK_SIZE));
     }
 
 
