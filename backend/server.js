@@ -16,18 +16,7 @@ app.use(cors({
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
 }));
-  
-app.use((req, res, next) => {
-  res.header(
-    "Access-Control-Allow-Origin",
-    "https://document-analyzer-351n.vercel.app"
-  );
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Content-Type"
-  );
-  next();
-});
+
 
 app.use(express.json());
 
@@ -36,7 +25,7 @@ const groq = new Groq({
 });
 
 // File storage setup
-const storage = multer.diskStorage({
+const storage = multer.memoryStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
   },
@@ -77,8 +66,7 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
 
 
     // 1. Read uploaded PDF
-    const dataBuffer = fs.readFileSync(req.file.path);
-
+   const dataBuffer = req.file.buffer;
 
     // 2. Extract text
     const parser = new PDFParse({
@@ -108,7 +96,7 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
 
 
    // 3. Send text to Groq
-  fs.unlinkSync(req.file.path);
+ 
 
 
 let partialReports = [];
