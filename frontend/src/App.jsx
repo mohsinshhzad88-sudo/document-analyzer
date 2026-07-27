@@ -23,7 +23,7 @@ function App() {
 
     try {
       const response = await fetch(
-         "https://document-analyzer-rl4bm71bi-mohsin-shahzad.vercel.app/api/upload",
+          "https://document-analyzer-two.vercel.app/api/upload",
         {
           method: "POST",
           body: formData,
