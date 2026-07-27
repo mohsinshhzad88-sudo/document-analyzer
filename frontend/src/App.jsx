@@ -48,7 +48,8 @@ function App() {
 
   return (
     <div style={{ padding: "40px" }}>
-      <h1>Document Analyzer</h1>
+   <h1 style={{ color: "black" }}>Document Analyzer</h1> 
+
 
       <input
         id="fileInput"
