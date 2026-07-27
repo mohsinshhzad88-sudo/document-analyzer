@@ -1,6 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const { PDFParse } = require("pdf-parse");
+const pdfParse = require("pdf-parse");
 const fs = require("fs");
 const cors = require("cors");
 const multer = require("multer");
@@ -69,13 +69,9 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
    const dataBuffer = req.file.buffer;
 
     // 2. Extract text
-    const parser = new PDFParse({
-      data: dataBuffer
-    });
+     const data = await pdfParse(dataBuffer);
 
-    const result = await parser.getText();
-
-    const extractedText = result.text;
+     const extractedText = data.text;
 
     const CHUNK_SIZE = 8000; // characters
     const chunks = [];
