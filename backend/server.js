@@ -12,7 +12,7 @@ const path = require("path");
 const app = express();
 
 app.use(cors({
-  origin: "https://document-analyzer-351n.vercel.app",
+  origin: ["https://document-analyzer-351n.vercel.app", "http://localhost:5174"],
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
 }));
@@ -154,28 +154,103 @@ partialReports.push(response.choices[0].message.content);
 await new Promise(resolve => setTimeout(resolve, 5000));
 
 }
+const combinedReport = partialReports.join("\n\n");
+
+console.log("Creating final report...");
+
+let finalResponse;
+
+try {
+
+  finalResponse = await groq.chat.completions.create({
+
+    model: "llama-3.1-8b-instant",
+
+    messages: [
+      {
+        role: "system",
+        content: "You are an expert document auditing assistant."
+      },
+      {
+        role: "user",
+        content: `
+You are an expert document auditing assistant.
+
+Return ONLY valid JSON.
+
+Do NOT use markdown.
+Do NOT include explanations.
+Do NOT wrap the JSON inside \`\`\`.
+
+Return exactly this structure:
+
+{
+  "executiveSummary": "",
+  "keyFindings": [],
+  "risks": [],
+  "recommendations": [],
+  "overallScore": 0,
+  "finalVerdict": ""
+}
+
+Use the analyses below to generate the report.
+
+${combinedReport}
+`
+      }
+    ]
+
+  });
+
+  console.log("Final AI response received");
 
 
-const summary = partialReports.join("\n\n");
+} catch (error) {
 
-    // 4. Return result
-    res.json({
-      success: true,
-      message: "Document analyzed successfully!",
-      summary: summary
-    });
+  console.log("FINAL GROQ ERROR:");
+  console.log(error);
+
+  return res.status(500).json({
+    success: false,
+    message: error.message
+  });
+
+}
 
 
-  } catch(error) {
+const aiResponse = finalResponse.choices[0].message.content;
 
-    console.log("ERROR:", error);
 
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
 
-  }
+
+  const finalReport = JSON.parse(aiResponse);
+
+
+  console.log("Final report generated successfully!");
+
+
+  res.json({
+
+    success: true,
+
+    message: "Document analyzed successfully!",
+
+    report: finalReport,
+
+  });
+
+
+
+   } catch (error) {
+
+  console.log("ERROR:", error);
+
+  res.status(500).json({
+    success: false,
+    message: error.message
+  });
+
+}
 
 });
 
