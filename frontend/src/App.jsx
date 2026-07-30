@@ -6,8 +6,49 @@ import SkeletonReport from "./components/SkeletonReport";
 function App() {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
- const [report, setReport] = useState(null);
+  const [report, setReport] = useState(null);
   const [Loading, setLoading] = useState(false);
+  const [documentType, setDocumentType] = useState("Auto Detect");
+
+   const API_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:5000"
+      : "https://document-analyzer-two.vercel.app";
+
+
+const detectDocumentType = async (selectedFile) => {
+
+  const formData = new FormData();
+  formData.append("document", selectedFile);
+
+  try {
+
+    const response = await fetch(
+      `${API_URL}/api/detect-type`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const data = await response.json();
+
+    console.log(data);
+
+    if (data.success) {
+      setDocumentType(data.documentType);
+      setMessage(
+        `AI detected: ${data.documentType} (${data.confidence}% confidence)`
+      );
+    }
+
+  } catch (error) {
+    console.error(error);
+    setMessage("Failed to detect document type.");
+  }
+
+};
+
 
   const uploadFile = async () => {
     if (!file) {
@@ -21,10 +62,11 @@ function App() {
 
     const formData = new FormData();
     formData.append("document", file);
+    formData.append("documentType", documentType);
 
     try {
       const response = await fetch(
-           "https://document-analyzer-two.vercel.app/api/upload",
+           `${API_URL}/api/upload`,
         {
           method: "POST",
           body: formData,
@@ -57,7 +99,12 @@ function App() {
         id="fileInput"
         type="file"
         style={{display: "none"}}
-        onChange={(e) => setFile(e.target.files[0])}
+        onChange={(e) => {
+          const selectedFile = e.target.files[0];
+          if(!selectedFile) return;
+          setFile(selectedFile);
+          detectDocumentType(selectedFile);
+        }}
       />
  
         <label htmlFor="fileInput" className="file-button">
@@ -65,7 +112,28 @@ function App() {
         </label>
 
       <br /><br />
+      
+<label><strong>Document Type</strong></label>
+<br />
 
+<select
+  value={documentType}
+  onChange={(e) => setDocumentType(e.target.value)}
+>
+  <option>Auto Detect</option>
+  <option>Research Paper</option>
+  <option>Resume / CV</option>
+  <option>Legal Contract</option>
+  <option>Business Report</option>
+  <option>Financial Report</option>
+  <option>Medical Report</option>
+  <option>Story / Novel</option>
+  <option>Meeting Minutes</option>
+  <option>Technical Documentation</option>
+  <option>Other</option>
+</select>
+
+<br />
       <button onClick={uploadFile} disabled={Loading}>
         {Loading? "Analyzing..." : "Upload Document"}
       </button>
