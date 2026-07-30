@@ -7,7 +7,7 @@ const multer = require("multer");
 const Groq = require("groq-sdk");
 const path = require("path");
 const chunkText = require("./utils/chunkText");
-
+const generalPrompt = require("./prompts/general");
 
 const app = express();
 
@@ -186,15 +186,8 @@ while (true) {
         {
           role: "user",
           content: `
-Analyze this document section.
-
-Provide:
-1. Summary
-2. Important points
-3. Possible issues
-4. Risk level
-
-Document Section:
+           ${generalPrompt}
+           Document section
 
 ${chunk}
 `
