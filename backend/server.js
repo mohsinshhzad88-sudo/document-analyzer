@@ -7,7 +7,9 @@ const multer = require("multer");
 const Groq = require("groq-sdk");
 const path = require("path");
 const chunkText = require("./utils/chunkText");
-const generalPrompt = require("./prompts/general");
+const getPrompt = require("./prompts");
+
+
 
 const app = express();
 
@@ -69,6 +71,8 @@ app.post("/api/detect-type", upload.single("document"), async (req, res) => {
 
     console.log("Detecting document type...");
 
+     const analysisConfig = getPrompt(req.body.documentType);
+
     const response = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
       messages: [
@@ -80,16 +84,28 @@ You are an expert document classifier.
 Classify the document into ONE category only.
 
 Categories:
+
+Academic:
 - Research Paper
+- Student Assignment
+- Study Notes
+- Essay / Article
+
+Professional:
 - Resume / CV
-- Legal Contract
 - Business Report
 - Financial Report
-- Medical Report
+- Legal Contract
+- Technical Documentation
+
+General:
 - Story / Novel
 - Meeting Minutes
-- Technical Documentation
 - Other
+
+Important:
+Return only the document type name.
+Do not return the group name (Academic, Professional, General).
 
 Return ONLY valid JSON.
 
@@ -169,6 +185,9 @@ for (const chunk of chunks) {
 
   console.log("Analyzing chunk...");
 
+const analysisConfig = getPrompt(req.body.documentType);
+
+
   let response;
 
 while (true) {
@@ -186,10 +205,10 @@ while (true) {
         {
           role: "user",
           content: `
-           ${generalPrompt}
-           Document section
+           ${analysisConfig.prompt}
+           Document section:
 
-${chunk}
+            ${chunk}
 `
         }
       ]
@@ -295,6 +314,9 @@ const aiResponse = finalResponse.choices[0].message.content;
     success: true,
 
     message: "Document analyzed successfully!",
+
+      documentType: req.body.documentType,
+
 
     report: finalReport,
 
