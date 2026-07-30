@@ -1,9 +1,9 @@
-const generalPrompt = require("./general");
-const storyNovelPrompt = require("./storyNovel");
+const generalprompt = require("./general");
+const storyNovelprompt = require("./storyNovel");
 const schemas = require("./outputSchemas");
 
 
-function getPrompt(documentType) {
+function getprompt(documentType) {
 
       let schema = schemas.general;
 
@@ -12,14 +12,14 @@ function getPrompt(documentType) {
           case  "Story/Novel":
             schema = schemas.story;
             return{
-                prompt: storyNovelPrompt(),
+                prompt: storyNovelprompt(),
                 schema: schema
             };
-            return storyNovelPrompt;
+            return storyNovelprompt;
 
          default:
             return {
-               prompt: generalPrompt(),
+               prompt: generalprompt(),
                schema: schema
             };
             
@@ -30,4 +30,4 @@ function getPrompt(documentType) {
 }
 
 
-module.exports = getPrompt;
+module.exports = getprompt;

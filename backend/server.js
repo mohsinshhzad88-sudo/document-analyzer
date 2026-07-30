@@ -7,7 +7,7 @@ const multer = require("multer");
 const Groq = require("groq-sdk");
 const path = require("path");
 const chunkText = require("./utils/chunkText");
-const getPrompt = require("./prompts");
+const getprompt = require("./prompts");
 
 
 
@@ -71,7 +71,7 @@ app.post("/api/detect-type", upload.single("document"), async (req, res) => {
 
     console.log("Detecting document type...");
 
-     const analysisConfig = getPrompt(req.body.documentType);
+     const analysisConfig = getprompt(req.body.documentType);
 
     const response = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
@@ -185,7 +185,7 @@ for (const chunk of chunks) {
 
   console.log("Analyzing chunk...");
 
-const analysisConfig = getPrompt(req.body.documentType);
+const analysisConfig = getprompt(req.body.documentType);
 
 
   let response;
