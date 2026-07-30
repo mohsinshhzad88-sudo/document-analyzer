@@ -51,7 +51,79 @@ app.get("/api/message", (req, res) => {
     message: "Hello from Express! 🚀"
   });
 });
+app.post("/api/detect-type", upload.single("document"), async (req, res) => {
 
+  try {
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded"
+      });
+    }
+
+    const data = await pdfParse(req.file.buffer);
+    const preview = data.text.substring(0, 3000);
+
+    console.log("Detecting document type...");
+
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "system",
+          content: `
+You are an expert document classifier.
+
+Classify the document into ONE category only.
+
+Categories:
+- Research Paper
+- Resume / CV
+- Legal Contract
+- Business Report
+- Financial Report
+- Medical Report
+- Story / Novel
+- Meeting Minutes
+- Technical Documentation
+- Other
+
+Return ONLY valid JSON.
+
+{
+  "documentType": "",
+  "confidence": 0
+}
+`
+        },
+        {
+          role: "user",
+          content: preview
+        }
+      ]
+    });
+
+    const result = JSON.parse(response.choices[0].message.content);
+
+    return res.json({
+      success: true,
+      documentType: result.documentType,
+      confidence: result.confidence
+    });
+
+  } catch (error) {
+
+    console.log(error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
+
+});
 
 app.post("/api/upload", upload.single("document"), async (req, res) => {
 
