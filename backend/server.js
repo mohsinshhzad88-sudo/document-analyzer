@@ -6,13 +6,15 @@ const cors = require("cors");
 const multer = require("multer");
 const Groq = require("groq-sdk");
 const path = require("path");
-
+const chunkText = require("./utils/chunkText");
 
 
 const app = express();
 
 app.use(cors({
-  origin: ["https://document-analyzer-351n.vercel.app", "http://localhost:5174"],
+  origin: ["https://document-analyzer-351n.vercel.app",
+            "http://localhost:5174",
+             "http://localhost:5173"],
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
 }));
@@ -144,13 +146,7 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
      const data = await pdfParse(dataBuffer);
 
      const extractedText = data.text;
-
-    const CHUNK_SIZE = 8000; // characters
-    const chunks = [];
-
-    for (let i = 0; i < extractedText.length; i += CHUNK_SIZE) {
-      chunks.push(extractedText.slice(i, i + CHUNK_SIZE));
-    }
+    const chunks = chunkText(extractedText);
 
 
           console.log("=================================");

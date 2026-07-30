@@ -117,6 +117,7 @@ const detectDocumentType = async (selectedFile) => {
 <br />
 
 <select
+  className="document-type"
   value={documentType}
   onChange={(e) => setDocumentType(e.target.value)}
 >
@@ -134,8 +135,11 @@ const detectDocumentType = async (selectedFile) => {
 </select>
 
 <br />
-      <button onClick={uploadFile} disabled={Loading}>
-        {Loading? "Analyzing..." : "Upload Document"}
+      <button 
+      className="upload-button"
+      onClick={uploadFile} 
+      disabled={Loading}>
+        {Loading? "⏳Analyzing..." : "📄Upload Document"}
       </button>
 
       <h3>{message}</h3>
