@@ -1,4 +1,8 @@
-const generalPrompt = `
+module.exports = function generalPrompt() {
+
+return `
+You are a document auditing assistant.
+
 Analyze this document section.
 
 Provide:
@@ -8,4 +12,4 @@ Provide:
 4. Risk level
 `;
 
-module.exports = generalPrompt;
+};

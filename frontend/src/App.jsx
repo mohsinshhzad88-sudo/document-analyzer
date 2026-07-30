@@ -9,6 +9,7 @@ function App() {
   const [report, setReport] = useState(null);
   const [Loading, setLoading] = useState(false);
   const [documentType, setDocumentType] = useState("Auto Detect");
+  const [currentDocumentType, setCurrentDocumentType] = useState("");
 
    const API_URL =
     window.location.hostname === "localhost"
@@ -78,6 +79,7 @@ const detectDocumentType = async (selectedFile) => {
 
             setMessage(data.message);
             setReport(data.report);
+            setCurrentDocumentType(data.documentType);
 
       setLoading(false);
 
