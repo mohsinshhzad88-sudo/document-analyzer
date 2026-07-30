@@ -1,4 +1,4 @@
-module.exports = function generalPrompt() {
+module.exports = function generalprompt() {
 
 return `
 You are a document auditing assistant.
