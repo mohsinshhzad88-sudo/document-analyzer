@@ -1,4 +1,4 @@
-module.exports = function storyNovelPrompt() {
+module.exports = function storyNovelprompt() {
 
 return `
 You are an expert story and literature analyst.
