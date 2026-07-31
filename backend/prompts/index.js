@@ -9,13 +9,13 @@ function getprompt(documentType) {
 
     switch(documentType) {
 
-          case  "Story/Novel":
+          case  "Story / Novel":
             schema = schemas.story;
             return{
                 prompt: storyNovelprompt(),
                 schema: schema
             };
-            return storyNovelprompt;
+           
 
          default:
             return {

@@ -10,6 +10,9 @@ function App() {
   const [Loading, setLoading] = useState(false);
   const [documentType, setDocumentType] = useState("Auto Detect");
   const [currentDocumentType, setCurrentDocumentType] = useState("");
+  const [documentLanguage, setDocumentLanguage] = useState("Auto Detect");
+  const [currentDocumentLanguage, setCurrentDocumentLanguage] = useState("");
+
 
    const API_URL =
     window.location.hostname === "localhost"
@@ -50,6 +53,38 @@ const detectDocumentType = async (selectedFile) => {
 
 };
 
+const detectDocumentLanguage = async (selectedFile) => {
+
+  const formData = new FormData();
+  formData.append("document", selectedFile);
+
+  try {
+
+    const response = await fetch(
+      `${API_URL}/api/detect-language`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const data = await response.json();
+
+    console.log(data);
+
+    if (data.success) {
+      setDocumentLanguage(data.language);
+      setLanguageMessage(
+        `AI detected: ${data.language} (${data.confidence}% confidence)`
+      );
+    }
+
+  } catch (error) {
+    console.error(error);
+    setLanguageMessage("Failed to detect language.");
+  }
+
+};
 
   const uploadFile = async () => {
     if (!file) {
@@ -64,6 +99,7 @@ const detectDocumentType = async (selectedFile) => {
     const formData = new FormData();
     formData.append("document", file);
     formData.append("documentType", documentType);
+    formData.append("documentLanguage", documentLanguage);
 
     try {
       const response = await fetch(
@@ -80,6 +116,7 @@ const detectDocumentType = async (selectedFile) => {
             setMessage(data.message);
             setReport(data.report);
             setCurrentDocumentType(data.documentType);
+            setCurrentDocumentLanguage(data.documentLanguage);
 
       setLoading(false);
 
@@ -106,6 +143,7 @@ const detectDocumentType = async (selectedFile) => {
           if(!selectedFile) return;
           setFile(selectedFile);
           detectDocumentType(selectedFile);
+          detectDocumentLanguage(selectedFile);
         }}
       />
  
@@ -133,8 +171,33 @@ const detectDocumentType = async (selectedFile) => {
   <option>Story / Novel</option>
   <option>Meeting Minutes</option>
   <option>Technical Documentation</option>
+    <option>Personal Note</option>
+      <option>Biography</option>
+     <option>Student Assignment</option>
   <option>Other</option>
 </select>
+
+<label><strong>Document Language</strong></label>
+<br />
+
+<select
+  className="document-type"
+  value={documentLanguage}
+  onChange={(e) => setDocumentLanguage(e.target.value)}
+>
+  <option>Auto Detect</option>
+  <option>English</option>
+  <option>Urdu</option>
+  <option>Arabic</option>
+  <option>Spanish</option>
+  <option>French</option>
+  <option>German</option>
+  <option>Chinese</option>
+  <option>Hindi</option>
+  <option>Other</option>
+</select>
+
+<br /><br />
 
 <br />
       <button 
@@ -166,6 +229,10 @@ const detectDocumentType = async (selectedFile) => {
       📄 Document Audit Report
     </h2>
 
+     <h3>🌍 Document Language</h3>
+<p>{currentDocumentLanguage || documentLanguage}</p>
+    
+    
     <h3>Executive Summary</h3>
     <p>{report.executiveSummary}</p>
 

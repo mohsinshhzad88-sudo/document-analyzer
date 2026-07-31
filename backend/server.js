@@ -13,20 +13,25 @@ const getprompt = require("./prompts");
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://document-analyzer-351n.vercel.app"
+];
+
 app.use(cors({
-  origin: function (origin, callback) {
+  origin: function(origin, callback) {
+
+    if (!origin) return callback(null, true);
+
     if (
-      !origin ||
-      origin.includes("localhost") ||
+      allowedOrigins.includes(origin) ||
       origin.endsWith(".vercel.app")
     ) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+      return callback(null, true);
     }
-  },
-  methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type"]
+
+    callback(new Error("Not allowed by CORS"));
+  }
 }));
 
 
@@ -79,10 +84,16 @@ app.post("/api/detect-type", upload.single("document"), async (req, res) => {
 
     console.log("Detecting document type...");
 
-     const analysisConfig = getprompt(req.body.documentType);
+   const analysisConfig = getprompt(
+  req.body.documentType,
+  req.body.documentLanguage
+);
 
     const response = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
+       response_format: {
+    type: "json_object"
+  },
       messages: [
         {
           role: "system",
@@ -106,14 +117,27 @@ Professional:
 - Legal Contract
 - Technical Documentation
 
-General:
+Creative:
 - Story / Novel
+
+Personal:
+- Personal Note
+- Biography
+- Introduction
+
+General:
 - Meeting Minutes
 - Other
 
 Important:
 Return only the document type name.
-Do not return the group name (Academic, Professional, General).
+Do not return the group name (Academic, Professional, Creative, Personal, General).
+
+Classification rules:
+- If the document mainly describes a person's name, location, interests, thoughts, or personal introduction, choose "Personal Note".
+- If the document contains education, skills, experience, or career information, choose "Resume / CV".
+- Do not classify short personal introductions as Resume/CV.
+- Do not invent document purpose from limited text.
 
 Return ONLY valid JSON.
 
@@ -130,11 +154,92 @@ Return ONLY valid JSON.
       ]
     });
 
-    const result = JSON.parse(response.choices[0].message.content);
+    let aiResult = response.choices[0].message.content;
+
+console.log("RAW TYPE RESPONSE:");
+console.log(aiResult);
+
+aiResult = aiResult.replace(/```json/g, "");
+aiResult = aiResult.replace(/```/g, "");
+aiResult = aiResult.trim();
+
+const result = JSON.parse(aiResult);
 
     return res.json({
       success: true,
       documentType: result.documentType,
+      confidence: result.confidence
+    });
+
+  } catch (error) {
+
+    console.log(error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
+
+});
+     
+     app.post("/api/detect-language", upload.single("document"), async (req, res) => {
+
+  try {
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded"
+      });
+    }
+
+    const data = await pdfParse(req.file.buffer);
+    const preview = data.text.substring(0, 3000);
+
+    console.log("Detecting document language...");
+
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      
+      messages: [
+        {
+          role: "system",
+          content: `
+You are an expert language detector.
+
+Detect the primary language of the document.
+
+Return ONLY valid JSON.
+
+{
+  "language": "",
+  "confidence": 0
+}
+`
+        },
+        {
+          role: "user",
+          content: preview
+        }
+      ]
+    });
+
+   let aiResult = response.choices[0].message.content;
+
+console.log("RAW TYPE RESPONSE:");
+console.log(aiResult);
+
+aiResult = aiResult.replace(/```json/g, "");
+aiResult = aiResult.replace(/```/g, "");
+aiResult = aiResult.trim();
+
+const result = JSON.parse(aiResult);
+
+    return res.json({
+      success: true,
+      language: result.language,
       confidence: result.confidence
     });
 
@@ -193,7 +298,10 @@ for (const chunk of chunks) {
 
   console.log("Analyzing chunk...");
 
-const analysisConfig = getprompt(req.body.documentType);
+  const analysisConfig = getprompt(
+  req.body.documentType,
+  req.body.documentLanguage
+);
 
 
   let response;
@@ -252,9 +360,13 @@ try {
 
   finalResponse = await groq.chat.completions.create({
 
-    model: "llama-3.1-8b-instant",
+  model: "llama-3.1-8b-instant",
 
-    messages: [
+  response_format: {
+    type: "json_object"
+  },
+
+  messages: [
       {
         role: "system",
         content: "You are an expert document auditing assistant."
@@ -264,10 +376,21 @@ try {
         content: `
 You are an expert document auditing assistant.
 
+
+The document language is ${req.body.documentLanguage}.
+
+Return all JSON values in ${req.body.documentLanguage}.
 Return ONLY valid JSON.
 
+STRICT JSON RULES:
+- Use double quotes only.
+- Escape all quotation marks inside text.
+- Do not use line breaks inside string values.
+- Do not add comments.
+- Do not add extra fields.
+- All Urdu/Arabic text must still be valid JSON strings.
+
 Do NOT use markdown.
-Do NOT include explanations.
 Do NOT wrap the JSON inside \`\`\`.
 
 Return exactly this structure:
@@ -280,10 +403,18 @@ Return exactly this structure:
   "overallScore": 0,
   "finalVerdict": ""
 }
+   
+The document language is ${req.body.documentLanguage}.
+
+Generate the report values in that language
+  
 
 Use the analyses below to generate the report.
 
 ${combinedReport}
+Original document text for verification:
+
+${extractedText}
 `
       }
     ]
@@ -306,8 +437,17 @@ ${combinedReport}
 }
 
 
-const aiResponse = finalResponse.choices[0].message.content;
+let aiResponse = finalResponse.choices[0].message.content;
 
+aiResponse = aiResponse
+  .replace(/```json/g, "")
+  .replace(/```/g, "")
+  .trim();
+
+console.log("========== RAW AI RESPONSE ==========");
+console.log(aiResponse);
+console.log("====================================");
+ 
 
 
 
