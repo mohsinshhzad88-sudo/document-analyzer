@@ -100,6 +100,10 @@ app.post("/api/detect-type", upload.single("document"), async (req, res) => {
           content: `
 You are an expert document classifier.
 
+Confidence rules:
+- Return confidence between 80-100 for clear readable documents.
+- Use low confidence only when the document is unclear, empty, corrupted, or insufficient.
+
 Classify the document into ONE category only.
 
 Categories:
@@ -143,7 +147,7 @@ Return ONLY valid JSON.
 
 {
   "documentType": "",
-  "confidence": 0
+  "documentTypeConfidence": 0
 }
 `
         },
@@ -168,7 +172,7 @@ const result = JSON.parse(aiResult);
     return res.json({
       success: true,
       documentType: result.documentType,
-      confidence: result.confidence
+      documentTypeConfidence: result.documentTypeConfidence
     });
 
   } catch (error) {
@@ -208,6 +212,9 @@ const result = JSON.parse(aiResult);
           role: "system",
           content: `
 You are an expert language detector.
+Confidence rules:
+- Return confidence between 80-100 for clearly readable documents.
+- Use low confidence only if the language cannot be reliably determined.
 
 Detect the primary language of the document.
 
@@ -215,7 +222,7 @@ Return ONLY valid JSON.
 
 {
   "language": "",
-  "confidence": 0
+  "languageConfidence": 0
 }
 `
         },
@@ -240,7 +247,7 @@ const result = JSON.parse(aiResult);
     return res.json({
       success: true,
       language: result.language,
-      confidence: result.confidence
+      languageConfidence: result.languageConfidence
     });
 
   } catch (error) {
@@ -393,7 +400,16 @@ STRICT JSON RULES:
 Do NOT use markdown.
 Do NOT wrap the JSON inside \`\`\`.
 
+
+Executive Summary rules:
+- Write a detailed summary of approximately 150-200 words.
+- Include the document's main purpose, important topics, key arguments, and overall assessment.
+- Do not make it a single short paragraph.
+- Keep it professional and based only on the document content.
+
 Return exactly this structure:
+
+
 
 {
   "executiveSummary": "",
@@ -464,6 +480,8 @@ console.log("====================================");
     message: "Document analyzed successfully!",
 
       documentType: req.body.documentType,
+
+       documentLanguage: req.body.documentLanguage,
 
 
     report: finalReport,
