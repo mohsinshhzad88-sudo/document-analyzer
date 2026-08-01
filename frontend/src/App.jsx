@@ -1,17 +1,23 @@
+import Header from "./components/Header";
 import { useState } from "react";
 import "./App.css";
 import ReactMarkdown from "react-markdown";
 import SkeletonReport from "./components/SkeletonReport";
+import UploadCard from "./components/UploadCard";
+import ReportDashboard from "./components/ReportDashboard";
 
 function App() {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
+  const [typeMessage, setTypeMessage] = useState("");
+  const [languageMessage, setLanguageMessage] = useState("");
   const [report, setReport] = useState(null);
   const [Loading, setLoading] = useState(false);
   const [documentType, setDocumentType] = useState("Auto Detect");
   const [currentDocumentType, setCurrentDocumentType] = useState("");
   const [documentLanguage, setDocumentLanguage] = useState("Auto Detect");
   const [currentDocumentLanguage, setCurrentDocumentLanguage] = useState("");
+  
 
 
    const API_URL =
@@ -41,8 +47,8 @@ const detectDocumentType = async (selectedFile) => {
 
     if (data.success) {
       setDocumentType(data.documentType);
-      setMessage(
-        `AI detected: ${data.documentType} (${data.confidence}% confidence)`
+      setTypeMessage(
+        `📄 AI detected: ${data.documentType} (${data.documentTypeConfidence}% confidence)`
       );
     }
 
@@ -75,7 +81,7 @@ const detectDocumentLanguage = async (selectedFile) => {
     if (data.success) {
       setDocumentLanguage(data.language);
       setLanguageMessage(
-        `AI detected: ${data.language} (${data.confidence}% confidence)`
+        `🌍 AI detected: ${data.language} (${data.languageConfidence}% confidence)`
       );
     }
 
@@ -130,159 +136,38 @@ const detectDocumentLanguage = async (selectedFile) => {
   };
 
   return (
-    <div style={{ padding: "40px" }}>
-   <h1 style={{ color: "black" }}>Document Analyzer</h1> 
+    <div className="container">
+   <Header />
 
-
-      <input
-        id="fileInput"
-        type="file"
-        style={{display: "none"}}
-        onChange={(e) => {
-          const selectedFile = e.target.files[0];
-          if(!selectedFile) return;
-          setFile(selectedFile);
-          detectDocumentType(selectedFile);
-          detectDocumentLanguage(selectedFile);
-        }}
-      />
+<UploadCard
+  file={file}
+  setFile={setFile}
+  detectDocumentType={detectDocumentType}
+  detectDocumentLanguage={detectDocumentLanguage}
+  documentType={documentType}
+  setDocumentType={setDocumentType}
+  documentLanguage={documentLanguage}
+  setDocumentLanguage={setDocumentLanguage}
+  uploadFile={uploadFile}
+  Loading={Loading}
+/>
  
-        <label htmlFor="fileInput" className="file-button">
-              {file ? file.name : "📂 Choose Document"}
-        </label>
+      {typeMessage && <h4>{typeMessage}</h4>}
 
-      <br /><br />
-      
-<label><strong>Document Type</strong></label>
-<br />
+    {languageMessage && <h4>{languageMessage}</h4>}
 
-<select
-  className="document-type"
-  value={documentType}
-  onChange={(e) => setDocumentType(e.target.value)}
->
-  <option>Auto Detect</option>
-  <option>Research Paper</option>
-  <option>Resume / CV</option>
-  <option>Legal Contract</option>
-  <option>Business Report</option>
-  <option>Financial Report</option>
-  <option>Medical Report</option>
-  <option>Story / Novel</option>
-  <option>Meeting Minutes</option>
-  <option>Technical Documentation</option>
-    <option>Personal Note</option>
-      <option>Biography</option>
-     <option>Student Assignment</option>
-  <option>Other</option>
-</select>
-
-<label><strong>Document Language</strong></label>
-<br />
-
-<select
-  className="document-type"
-  value={documentLanguage}
-  onChange={(e) => setDocumentLanguage(e.target.value)}
->
-  <option>Auto Detect</option>
-  <option>English</option>
-  <option>Urdu</option>
-  <option>Arabic</option>
-  <option>Spanish</option>
-  <option>French</option>
-  <option>German</option>
-  <option>Chinese</option>
-  <option>Hindi</option>
-  <option>Other</option>
-</select>
-
-<br /><br />
-
-<br />
-      <button 
-      className="upload-button"
-      onClick={uploadFile} 
-      disabled={Loading}>
-        {Loading? "⏳Analyzing..." : "📄Upload Document"}
-      </button>
-
-      <h3>{message}</h3>
+         {message && <h3>{message}</h3>}
       
 
 
 {Loading && <SkeletonReport />}
 
 {!Loading && report && (
-  <div
-    style={{
-      marginTop: "20px",
-      background: "#ffffff",
-      padding: "25px",
-      borderRadius: "12px",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-      textAlign: "left",
-    }}
-  >
-
-    <h2 style={{ textAlign: "center" }}>
-      📄 Document Audit Report
-    </h2>
-
-     <h3>🌍 Document Language</h3>
-<p>{currentDocumentLanguage || documentLanguage}</p>
-    
-    
-    <h3>Executive Summary</h3>
-    <p>{report.executiveSummary}</p>
-
-
-    <h3>Key Findings</h3>
-<ul>
-  {report.keyFindings?.map((item, index) => (
-    <li key={index}>
-      {typeof item === "object"
-        ? item.finding || JSON.stringify(item)
-        : item}
-    </li>
-  ))}
-</ul>
-
-
-<h3>Risks</h3>
-<ul>
-  {report.risks?.map((item, index) => (
-    <li key={index}>
-      {typeof item === "object"
-        ? item.risk || JSON.stringify(item)
-        : item}
-    </li>
-  ))}
-</ul>
-
-
-<h3>Recommendations</h3>
-<ul>
-  {report.recommendations?.map((item, index) => (
-    <li key={index}>
-      {typeof item === "object"
-        ? item.recommendation || JSON.stringify(item)
-        : item}
-    </li>
-  ))}
-</ul>
-
-
-    <h3>Overall Score</h3>
-    <h1>
-      {report.overallScore}/100
-    </h1>
-
-
-    <h3>Final Verdict</h3>
-    <p>{report.finalVerdict}</p>
-
-  </div>
+  <ReportDashboard
+    report={report}
+    currentDocumentLanguage={currentDocumentLanguage}
+    documentLanguage={documentLanguage}
+  />
 )}
 
     </div>
