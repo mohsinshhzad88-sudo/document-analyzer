@@ -65,26 +65,128 @@ For clear readable documents:
 Provide the report in this format:
 
 ## Executive Summary
-A concise overview.
+Write a detailed summary of approximately 150-200 words.
+Include:
+- document purpose
+- main topics
+- key arguments or findings
+- overall assessment
+
+Keep it professional and based only on the document content.
 
 ## Key Findings
 Important findings as bullet points.
 
 ## Risks
-Identify factual risks or clearly state no significant risks.
+
+IMPORTANT:
+Risks are ONLY about document quality.
+
+Allowed examples:
+- unclear writing
+- missing information
+- inconsistent formatting
+- poor organization
+- incomplete sections
+
+Never mention:
+- characters
+- events
+- story elements
+- fictional problems
+- subject matter risks
+
+If no quality risks exist:
+"No significant quality risks were identified based on the available information."
+
 
 ## Recommendations
-Practical evidence-based recommendations.
+
+IMPORTANT:
+Recommendations are ONLY for improving document quality.
+
+Allowed:
+- Improve clarity
+- Improve grammar
+- Improve structure
+- Improve formatting
+- Improve completeness
+- Improve consistency
+
+Never recommend:
+- changing content
+- adding characters
+- changing events
+- expanding ideas
+- modifying the subject matter
+
+Recommendations rules:
+
+Recommendations must focus on document quality.
+
+Allowed:
+- Improve clarity
+- Improve structure
+- Improve formatting
+- Improve completeness
+- Improve consistency
+
+Do not recommend:
+- adding characters
+- changing events
+- changing plot
+- expanding fictional elements
+- modifying subject content
+
+Executive Summary must only describe the document.
+Do not include criticism, weaknesses, recommendations, or improvement suggestions.
+Quality evaluation belongs only in evaluationSummary.
+
 
 ## Overall Score
 
+
 Calculate the score using these rules:
+IMPORTANT:
+overallScore must be an integer from 0 to 100.
+
+Never use:
+- 9/10
+- 8.5
+- 95/100
+
+Only return:
+90
+85
+70
+etc.
 
 - 90-100: Excellent quality, complete, clear, professional, and well structured.
 - 75-89: Good quality with minor issues.
 - 50-74: Usable but has noticeable problems.
 - 25-49: Poor quality, incomplete, or has major issues.
 - 0-24: Cannot be reliably analyzed, empty, unreadable, or severely corrupted.
+
+IMPORTANT SCORE FORMAT:
+The score scale is ALWAYS 0-100.
+
+Never use a 10-point scale.
+
+Wrong:
+8
+9
+8.5
+9/10
+
+Correct:
+80
+90
+85
+
+Convert any 10-point evaluation into a percentage.
+Example:
+8/10 = 80
+9/10 = 90
 
 Scoring factors:
 - Readability: 25 points
@@ -93,6 +195,7 @@ Scoring factors:
 - Structure and professionalism: 25 points
 
 The score must represent the document quality, not the topic, author, or personal information.
+
 Short personal notes or introductions should not receive very low scores only because they are short.
 Evaluate based on the purpose of the document.
 A short personal note can receive a moderate score if it is clear and readable.
@@ -106,7 +209,7 @@ Return only an integer number between 0 and 100.
 Never use decimals.
 If the document is empty, unreadable, or has insufficient extractable text, the score must be 0.
 
-The finalVerdict must match the score:
+The finalVerdict must match the score exactly:
 
 90-100 = Excellent
 75-89 = Good
@@ -114,7 +217,51 @@ The finalVerdict must match the score:
 25-49 = Poor
 0-24 = High Risk
 
-Return only the verdict word.
+IMPORTANT:
+finalVerdict must contain ONLY ONE WORD.
+
+Allowed values:
+"Excellent"
+"Good"
+"Fair"
+"Poor"
+"High Risk"
+
+Do not write sentences.
+Do not explain the score.
+
+## Evaluation Summary
+
+After calculating the score, write an evaluationSummary.
+
+Rules:
+- Write 25-40 words explaining why this score was awarded.
+- Focus only on document quality:
+  - writing quality
+  - structure
+  - completeness
+  - consistency
+  - professionalism
+- Do not repeat the executive summary.
+- Do not explain the document topic.
+- Do not mention AI.
+- Do not mention story, topic, characters, events, names, examples, or document content inside evaluationSummary.
+
+FINAL CHECK BEFORE RETURNING JSON:
+
+If overallScore is:
+90-100 → finalVerdict must be "Excellent"
+75-89 → finalVerdict must be "Good"
+50-74 → finalVerdict must be "Fair"
+25-49 → finalVerdict must be "Poor"
+0-24 → finalVerdict must be "High Risk"
+
+Do not return JSON if finalVerdict does not match the score.
+JSON Validation Rules:
+- overallScore must be a number between 0 and 100.
+- finalVerdict must exactly match the score range.
+- evaluationSummary must never contain document-specific information.
+- qualityAnalysis values must be integers between 0 and 100.
 
 Never leave sections empty.
 If information is insufficient, explain why instead of making assumptions.
