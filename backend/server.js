@@ -91,6 +91,7 @@ app.post("/api/detect-type", upload.single("document"), async (req, res) => {
 
     const response = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
+       temperature: 0,
        response_format: {
     type: "json_object"
   },
@@ -206,7 +207,7 @@ const result = JSON.parse(aiResult);
 
     const response = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
-      
+      temperature: 0,
       messages: [
         {
           role: "system",
@@ -319,22 +320,45 @@ while (true) {
     response = await groq.chat.completions.create({
 
       model: "llama-3.1-8b-instant",
+      
+      temperature: 0,
 
       messages: [
-        {
-          role: "system",
-          content: "You are a document auditing assistant."
-        },
-        {
-          role: "user",
-          content: `
-           ${analysisConfig.prompt}
-           Document section:
+{
+  role: "system",
+  content: `
+You are a document auditing assistant.
 
-            ${chunk}
+IMPORTANT:
+Your analysis will be used to create a final document quality report.
+
+Follow these rules:
+- Analyze only the provided document section.
+- Do not suggest changing story events, characters, topics, examples, or subject content.
+- Do not create fictional risks.
+- Recommendations must only relate to:
+  - writing quality
+  - clarity
+  - structure
+  - formatting
+  - completeness
+  - consistency
+- Evaluate quality, not the subject matter.
+
+Return factual analysis only.
 `
-        }
-      ]
+},
+{
+ role: "user",
+ content: `
+${analysisConfig.prompt}
+
+Document section:
+
+${chunk}
+`
+}
+]
 
     });
 
@@ -369,6 +393,8 @@ try {
 
   model: "llama-3.1-8b-instant",
 
+  temperature: 0,
+
   response_format: {
     type: "json_object"
   },
@@ -376,7 +402,7 @@ try {
   messages: [
       {
         role: "system",
-        content: "You are an expert document auditing assistant."
+        content: "You are an expert document auditing assistant. "
       },
       {
         role: "user",
@@ -402,33 +428,174 @@ Do NOT wrap the JSON inside \`\`\`.
 
 
 Executive Summary rules:
-- Write a detailed summary of approximately 150-200 words.
-- Include the document's main purpose, important topics, key arguments, and overall assessment.
-- Do not make it a single short paragraph.
-- Keep it professional and based only on the document content.
+- Write approximately 150–200 words.
+- Summarize the document's specific purpose, discussed topics, major findings, risks, recommendations, and final conclusion.
+- Mention the overall quality of the document where appropriate.
+- Keep the summary professional, objective, and based only on the document content.
+- Do not use bullet points.
+- Do not invent information that is not present in the document.
+
+evaluationSummary FIELD RULES:
+
+Generate ONLY a quality evaluation.
+
+Allowed discussion:
+- writing quality
+- grammar
+- readability
+- structure
+- organization
+- completeness
+- consistency
+- professionalism
+
+Forbidden:
+- document topic
+- subject
+- story details
+- characters
+- names
+- events
+- examples
+- technical content
+- any explanation of what the document is about
+
+Bad example:
+"The story has memorable characters and good themes."
+
+Good example:
+"The document has clear writing, organized structure, consistent presentation, and professional formatting. Minor improvements may be needed in completeness and clarity."
+
+
+IMPORTANT:
+The executiveSummary field must NOT be a brief summary.
+It must always contain 150-200 words, even for short documents.
+Expand using only information available in the document.
+Do not reduce the summary length.
+
+Key Findings rules:
+- keyFindings must always be an array.
+- Each item must be a simple text bullet point.
+- Do not return objects.
+- Do not include scores inside keyFindings.
+- Example:
+
+[
+ "AI improves personalized learning.",
+ "AI reduces administrative workload."
+]
 
 Return exactly this structure:
 
+Quality Analysis rules:
 
+You MUST provide qualityAnalysis values.
+
+Evaluate the document:
+
+- writingQuality:
+  Grammar, readability, sentence quality, clarity.
+
+- structure:
+  Organization, formatting, logical flow, sections.
+
+
+themes:
+Quality of organization of ideas, logical development, and completeness of discussion.
+
+- consistency:
+  Accuracy, logical consistency, and coherence.
+
+Rules:
+- Each value must be an integer from 0 to 100.
+- Never leave these values as 0 unless the document is empty or unreadable.
 
 {
+  "documentType": "",
   "executiveSummary": "",
   "keyFindings": [],
   "risks": [],
   "recommendations": [],
+  "qualityAnalysis": {
+    "writingQuality": 0,
+    "structure": 0,
+    "themes": 0,
+    "consistency": 0
+  },
   "overallScore": 0,
-  "finalVerdict": ""
+  "finalVerdict": "",
+  "evaluationSummary": ""
 }
-   
+
+FIELD RULES:
+
+finalVerdict:
+- MUST contain exactly one allowed word.
+- NEVER contain explanations.
+- NEVER contain sentences.
+
+Allowed:
+Excellent
+Good
+Fair
+Poor
+High Risk
+
+evaluationSummary:
+- MUST contain the explanation.
+- MUST only discuss quality factors.
+- MUST not mention the document topic, characters, story, names, events, or examples.
+
+overallScore:
+- MUST be an integer from 0-100.
+- Never use a 10-point scale.
+- Example: 8/10 must become 80.
+
+Risks rules:
+
+Risks must evaluate the document itself.
+
+Do not list:
+- story conflicts
+- fictional threats
+- characters
+- events
+- plot problems
+
+For creative documents:
+If no document quality risks exist, return:
+
+[
+ "No significant risks were identified based on document quality."
+]
+
+   The "documentType" must contain the actual detected document type such as:
+- Research Paper
+- Resume / CV
+- Business Report
+- Story / Novel
+- Legal Contract
+- Personal Note
+
+Return only one valid document type.
 The document language is ${req.body.documentLanguage}.
 
 Generate the report values in that language
   
 
 Use the analyses below to generate the report.
+IMPORTANT FINAL FILTER:
+
+Before generating JSON:
+- Remove any recommendations about changing document subject, story, characters, events, examples, or ideas.
+- Recommendations must only discuss writing quality, structure, formatting, clarity, completeness, and consistency.
+- Remove any risks that are fictional or content-based.
 
 ${combinedReport}
 Original document text for verification:
+Before generating the final JSON, rewrite and expand the executiveSummary.
+Do not copy the analysis text directly.
+The executiveSummary must be a complete 150-200 word paragraph.
 
 ${extractedText}
 `
@@ -468,25 +635,25 @@ console.log("====================================");
 
 
   const finalReport = JSON.parse(aiResponse);
+  finalReport.documentType = finalReport.documentType || req.body.documentType;
 
 
   console.log("Final report generated successfully!");
 
 
-  res.json({
+res.json({
 
-    success: true,
+ success: true,
 
-    message: "Document analyzed successfully!",
+ message: "Document analyzed successfully!",
 
-      documentType: req.body.documentType,
+ documentType: finalReport.documentType,
 
-       documentLanguage: req.body.documentLanguage,
+ documentLanguage: req.body.documentLanguage,
 
+ report: finalReport,
 
-    report: finalReport,
-
-  });
+});
 
 
 
