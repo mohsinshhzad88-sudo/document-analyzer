@@ -28,18 +28,54 @@ function ReportDashboard({
   },
 ];
 
-  const getScoreStatus = () => {
-    if (score >= 85) return "🏆 GOOD";
-    if (score >= 70) return "🟢 AVERAGE";
-    if (score >= 50) return "🟡 NEEDS IMPROVEMENT";
-    return "🔴 POOR";
-  };
+  
 
    const getQualityColor = (score) => {
   if(score >= 85) return "#22c55e";
   if(score >= 70) return "#f59e0b";
   return "#ef4444";
 };
+
+const getVerdictStyle = (verdict) => {
+  switch (verdict?.toLowerCase()) {
+    case "excellent":
+      return {
+        background: "#dcfce7",
+        color: "#166534",
+      };
+
+    case "good":
+      return {
+        background: "#dbeafe",
+        color: "#1d4ed8",
+      };
+
+    case "fair":
+      return {
+        background: "#fef3c7",
+        color: "#92400e",
+      };
+
+    case "poor":
+      return {
+        background: "#fee2e2",
+        color: "#991b1b",
+      };
+
+    case "high risk":
+      return {
+        background: "#fecaca",
+        color: "#7f1d1d",
+      };
+
+    default:
+      return {
+        background: "#f3f4f6",
+        color: "#374151",
+      };
+  }
+};
+
 
   const SectionCard = ({ icon, title, children }) => (
   <div
@@ -137,7 +173,7 @@ function ReportDashboard({
     {report.keyFindings?.map((item,index)=>(
       <li key={index}>
         ✓ {typeof item === "object"
-        ? item.finding
+        ? item.findings || item.finding 
         : item}
       </li>
     ))}
@@ -171,10 +207,10 @@ function ReportDashboard({
 
 {
 [
- ["Writing Quality",86],
- ["Structure",81],
- ["Themes",91],
- ["Consistency",75]
+ ["Writing Quality", report.qualityAnalysis?.writingQuality || 0],
+ ["Structure", report.qualityAnalysis?.structure || 0],
+ ["Themes", report.qualityAnalysis?.themes || 0],
+ ["Consistency", report.qualityAnalysis?.consistency || 0]
 ].map(([name,value])=>(
   
 <div key={name} style={{marginBottom:"22px"}}>
@@ -287,22 +323,20 @@ Document Quality
 
 <div
 style={{
-display:"inline-block",
-padding:"8px 20px",
-borderRadius:"20px",
-background:"#dcfce7",
-color:"#166534",
-fontWeight:"700",
-marginBottom:"15px"
+display: "inline-block",
+padding: "8px 20px",
+borderRadius: "20px",
+fontWeight: "700",
+marginBottom: "15px",
+...getVerdictStyle(report.finalVerdict)
 }}
 >
-GOOD
+{report.finalVerdict?.toUpperCase()}
 </div>
 
 
 <p>
-{report.finalVerdict ||
-"Strong structure with good consistency."}
+{report.evaluationSummary || "Ai evaluation not available."}
 </p>
 
 

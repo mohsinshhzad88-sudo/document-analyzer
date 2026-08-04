@@ -1,10 +1,11 @@
-import Header from "./components/Header";
+import Navbar from "./components/Navbar";
 import { useState } from "react";
 import "./App.css";
 import ReactMarkdown from "react-markdown";
 import SkeletonReport from "./components/SkeletonReport";
 import UploadCard from "./components/UploadCard";
 import ReportDashboard from "./components/ReportDashboard";
+import Comparison from "./pages/Comparison";
 
 function App() {
   const [file, setFile] = useState(null);
@@ -17,6 +18,7 @@ function App() {
   const [currentDocumentType, setCurrentDocumentType] = useState("");
   const [documentLanguage, setDocumentLanguage] = useState("Auto Detect");
   const [currentDocumentLanguage, setCurrentDocumentLanguage] = useState("");
+  const [showComparison, setShowComparison] = useState(false);
   
 
 
@@ -107,6 +109,9 @@ const detectDocumentLanguage = async (selectedFile) => {
     formData.append("documentType", documentType);
     formData.append("documentLanguage", documentLanguage);
 
+    console.log("Uploading type:", documentType);
+console.log("Uploading language:", documentLanguage);
+
     try {
       const response = await fetch(
            `${API_URL}/api/upload`,
@@ -136,38 +141,47 @@ const detectDocumentLanguage = async (selectedFile) => {
   };
 
   return (
-    <div className="container">
-   <Header />
+   <div className="container">
+  <Navbar
+    showComparison={showComparison}
+    setShowComparison={setShowComparison}
+  />
+  
+{!showComparison && (
+  <>
+    <UploadCard
+      file={file}
+      setFile={setFile}
+      detectDocumentType={detectDocumentType}
+      detectDocumentLanguage={detectDocumentLanguage}
+      documentType={documentType}
+      setDocumentType={setDocumentType}
+      documentLanguage={documentLanguage}
+      setDocumentLanguage={setDocumentLanguage}
+      uploadFile={uploadFile}
+      Loading={Loading}
+    />
 
-<UploadCard
-  file={file}
-  setFile={setFile}
-  detectDocumentType={detectDocumentType}
-  detectDocumentLanguage={detectDocumentLanguage}
-  documentType={documentType}
-  setDocumentType={setDocumentType}
-  documentLanguage={documentLanguage}
-  setDocumentLanguage={setDocumentLanguage}
-  uploadFile={uploadFile}
-  Loading={Loading}
-/>
- 
-      {typeMessage && <h4>{typeMessage}</h4>}
+    {typeMessage && <h4>{typeMessage}</h4>}
 
     {languageMessage && <h4>{languageMessage}</h4>}
 
-         {message && <h3>{message}</h3>}
-      
+    {message && <h3>{message}</h3>}
 
+    {Loading && <SkeletonReport />}
 
-{Loading && <SkeletonReport />}
+    {!Loading && report && (
+      <ReportDashboard
+        report={report}
+        currentDocumentLanguage={currentDocumentLanguage}
+        documentLanguage={documentLanguage}
+      />
+    )}
+  </>
+)}
 
-{!Loading && report && (
-  <ReportDashboard
-    report={report}
-    currentDocumentLanguage={currentDocumentLanguage}
-    documentLanguage={documentLanguage}
-  />
+{showComparison && (
+  <Comparison />
 )}
 
     </div>

@@ -263,8 +263,172 @@ const result = JSON.parse(aiResult);
   }
 
 });
+  
+   app.post("/api/evaluate", upload.fields([
+  { name: "reference", maxCount: 1 },
+  { name: "document", maxCount: 1 }
+]), async (req, res) => {
+
+  try {
+
+    const referenceFile = req.files.reference[0];
+
+    const mainFile = req.files.document[0];
+
+    const referenceData = await pdfParse(referenceFile.buffer);
+
+      const mainData = await pdfParse(mainFile.buffer);
+
+
+    const referenceText = referenceData.text;
+
+    const mainText = mainData.text;
+
+
+        console.log("========== REFERENCE TEXT ==========");
+        console.log(referenceText.substring(0, 500));
+
+
+        console.log("========== MAIN DOCUMENT TEXT ==========");
+        console.log(mainText.substring(0, 500));
+
+
+    console.log(
+      "Reference:",
+      referenceFile.originalname
+    );
+
+
+    console.log(
+      "Main:",
+      mainFile.originalname
+    );
+
+const response = await groq.chat.completions.create({
+
+  model: "llama-3.1-8b-instant",
+
+  temperature: 0,
+
+  response_format: {
+    type: "json_object"
+  },
+
+  messages: [
+
+    {
+      role: "system",
+      content: `
+You are a universal document comparison AI.
+
+Compare a main document against a reference document.
+
+The reference can be:
+- Mark scheme
+- Requirements
+- Policy
+- Contract
+- Guidelines
+- Any other document
+
+Analyze:
+
+1. Matching information
+2. Missing information
+3. Differences
+4. Improvement suggestions
+5. Overall score from 0-100
+
+Return ONLY valid JSON.
+
+Format:
+
+{
+ "matching": [
+  "Text describing a matched point"
+],
+
+"missing": [
+  "Text describing missing information"
+],
+
+"differences": [
+  "Text describing the difference between reference and main document"
+],
+
+"suggestions": [
+  "Text suggestion for improvement"
+],
+ "score": 0,
+ "summary": ""
+}
+ IMPORTANT FORMAT RULES:
+
+- Every item inside arrays must be a plain string.
+- Never return objects.
+- Never use keys like reference/main.
+- Convert comparisons into natural sentences.
+
+Example:
+
+Wrong:
+{
+ "reference":"Chlorophyll",
+ "main":""
+}
+
+Correct:
+"Chlorophyll is missing from the main document."
+`
+    },
+
+    {
+      role:"user",
+      content:`
+
+REFERENCE DOCUMENT:
+
+${referenceText}
+
+
+MAIN DOCUMENT:
+
+${mainText}
+
+`
+    }
+
+  ]
+
+});
+
+
+const result = JSON.parse(
+  response.choices[0].message.content
+);
+
+
+res.json({
+  success:true,
+  result
+});
+
+  } catch(error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      success:false,
+      message:"Evaluation failed"
+    });
+
+  }
+
+});
 
 app.post("/api/upload", upload.single("document"), async (req, res) => {
+
+  
 
   try {
 
