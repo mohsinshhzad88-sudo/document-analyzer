@@ -1,11 +1,19 @@
 import React, { useState } from "react";
+import ScoreCard from "../components/comparison/ScoreCard";
+import StrengthCard from "../components/comparison/StrengthCard";
+import MissingCard from "../components/comparison/MissingCard";
+import DifferenceCard from "../components/comparison/DifferenceCard";
+import ImprovementCard from "../components/comparison/ImprovementCard";
+import SummaryCard from "../components/comparison/SummaryCard";
+import "../components/comparison/ComparisonCards.css";
 
 function Comparison() {
   const [referenceFile, setReferenceFile] = useState(null);
+  const [referenceType, setReferenceType] = useState("");
   const [mainFile, setMainFile] = useState(null);
   const [evaluated, setEvaluated] = useState(false);
   const [result, setResult] = useState(null);
-
+  const [referenceLanguage, setReferenceLanguage] = useState("");
 
   const API_URL =
     window.location.hostname === "localhost"
@@ -22,6 +30,8 @@ const evaluateDocument = async () => {
   formData.append("reference", referenceFile);
 
   formData.append("document", mainFile);
+  
+  formData.append("referenceType", referenceType);
 
 
   try {
@@ -38,6 +48,8 @@ const evaluateDocument = async () => {
     const data = await response.json();
 
     console.log(data);
+     setReferenceType(data.referenceType);
+     
 
     
     setResult(data.result);
@@ -52,6 +64,30 @@ const evaluateDocument = async () => {
 
 };
 
+const detectReference = async (file) => {
+
+const formData = new FormData();
+
+  formData.append("document", file);
+
+  formData.append("documentType", "Auto Detect");
+  formData.append("language", "Auto Detect");
+
+  const response = await fetch(
+    "http://localhost:5000/api/detect-reference-type",
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  const data = await response.json();
+
+  console.log(data);
+
+  setReferenceType(data.referenceType);
+  setReferenceLanguage("English");
+};
 
   return (
     <div className="comparison-page">
@@ -79,9 +115,13 @@ const evaluateDocument = async () => {
         <input
           type="file"
           hidden
-          onChange={(e) =>
-            setReferenceFile(e.target.files[0])
-          }
+          onChange={(e) => {
+           const file = e.target.files[0];
+
+           setReferenceFile(file);
+
+           detectReference(file);
+}}
         />
       </label>
     </>
@@ -101,9 +141,13 @@ const evaluateDocument = async () => {
           <input
             type="file"
             hidden
-            onChange={(e) =>
-              setReferenceFile(e.target.files[0])
-            }
+           onChange={(e) => {
+              const file = e.target.files[0];
+
+              setReferenceFile(file);
+
+              detectReference(file);
+                  }}
           />
         </label>
 
@@ -194,64 +238,35 @@ const evaluateDocument = async () => {
 
   ) : (
 
-    <>
+ <>
+  <div className="comparison-results">
 
-      <h3>📈 Comparison Score</h3>
+    <ScoreCard 
+      data={result}
+    />
 
-      <h1>
-        {result.score}/100
-      </h1>
+    <StrengthCard 
+      items={result.strengths}
+    />
 
+    <MissingCard 
+      items={result.missing}
+    />
 
+    <DifferenceCard 
+      items={result.differences}
+    />
 
-      <h3>✅ Matching Information</h3>
+    <ImprovementCard 
+      items={result.priorityImprovements}
+    />
 
+    <SummaryCard 
+      text={result.summary}
+    />
 
-      {result.matching.map((item,index)=>(
-         <p key={index}>
-      ✓ {typeof item === "object" ? JSON.stringify(item) : item}
-           </p>
-        ))}
-
-
-      <h3>❌ Missing Information</h3>
-
-      {result.missing.map((item,index)=>(
-        <p key={index}>
-      •{typeof item === "object" ? JSON.stringify(item) : item}
-          </p>
-        ))}
-
-
-      <h3>⚠ Differences</h3>
-
-      {result.differences.map((item,index)=>(
-  <p key={index}>
-    • {
-      typeof item === "object"
-      ? `Reference: ${item.reference} | Main: ${item.main}`
-      : item
-    }
-  </p>
-))}
-
-
-      <h3>💡 Suggestions</h3>
-
-      {result.suggestions.map((item,index)=>(
-       <p key={index}>
-      • {typeof item === "object" ? JSON.stringify(item) : item}
-    </p>
-))}
-
-
-      <h3>📝 Summary</h3>
-
-      <p>
-        {result.summary}
-      </p>
-
-    </>
+  </div>
+</>
 
   )}
 
