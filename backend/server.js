@@ -8,8 +8,8 @@ const Groq = require("groq-sdk");
 const path = require("path");
 const chunkText = require("./utils/chunkText");
 const getprompt = require("./prompts");
-
-
+const getComparisonPrompt = require("./prompts/comparisonPrompts");
+const referenceClassifierPrompt = require("./prompts/referenceClassifierPrompt");
 
 const app = express();
 
@@ -188,7 +188,78 @@ const result = JSON.parse(aiResult);
   }
 
 });
-     
+   
+      app.post("/api/detect-reference-type", upload.single("document"), async (req, res) => {
+
+  try {
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded"
+      });
+    }
+
+    const data = await pdfParse(req.file.buffer);
+    const preview = data.text.substring(0, 3000);
+
+    console.log("Detecting document type...");
+
+   const analysisConfig = getprompt(
+  req.body.documentType,
+  req.body.documentLanguage
+);
+
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+       temperature: 0,
+       response_format: {
+    type: "json_object"
+  },
+      messages: [
+        {
+          role: "system",
+          content: referenceClassifierPrompt
+
+        },
+        {
+          role: "user",
+          content: preview
+        }
+      ]
+    });
+
+    let aiResult = response.choices[0].message.content;
+
+console.log("RAW TYPE RESPONSE:");
+console.log(aiResult);
+
+aiResult = aiResult.replace(/```json/g, "");
+aiResult = aiResult.replace(/```/g, "");
+aiResult = aiResult.trim();
+
+const result = JSON.parse(aiResult);
+
+    return res.json({
+      success: true,
+      referenceType: result.referenceType,
+      confidence: result.confidence
+    });
+
+  } catch (error) {
+
+    console.log(error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
+
+});
+   
+      
      app.post("/api/detect-language", upload.single("document"), async (req, res) => {
 
   try {
@@ -284,25 +355,27 @@ const result = JSON.parse(aiResult);
 
     const mainText = mainData.text;
 
+  const comparisonPrompt = getComparisonPrompt(
+  req.body.referenceType
+);
 
-        console.log("========== REFERENCE TEXT ==========");
-        console.log(referenceText.substring(0, 500));
+console.log("Reference Type:", req.body.referenceType);
 
+console.log("========== REFERENCE TEXT ==========");
+console.log(referenceText.substring(0, 500));
 
-        console.log("========== MAIN DOCUMENT TEXT ==========");
-        console.log(mainText.substring(0, 500));
+console.log("========== MAIN DOCUMENT TEXT ==========");
+console.log(mainText.substring(0, 500));
 
+console.log(
+  "Reference:",
+  referenceFile.originalname
+);
 
-    console.log(
-      "Reference:",
-      referenceFile.originalname
-    );
-
-
-    console.log(
-      "Main:",
-      mainFile.originalname
-    );
+console.log(
+  "Main:",
+  mainFile.originalname
+);
 
 const response = await groq.chat.completions.create({
 
@@ -318,68 +391,9 @@ const response = await groq.chat.completions.create({
 
     {
       role: "system",
-      content: `
-You are a universal document comparison AI.
+      content: comparisonPrompt
 
-Compare a main document against a reference document.
 
-The reference can be:
-- Mark scheme
-- Requirements
-- Policy
-- Contract
-- Guidelines
-- Any other document
-
-Analyze:
-
-1. Matching information
-2. Missing information
-3. Differences
-4. Improvement suggestions
-5. Overall score from 0-100
-
-Return ONLY valid JSON.
-
-Format:
-
-{
- "matching": [
-  "Text describing a matched point"
-],
-
-"missing": [
-  "Text describing missing information"
-],
-
-"differences": [
-  "Text describing the difference between reference and main document"
-],
-
-"suggestions": [
-  "Text suggestion for improvement"
-],
- "score": 0,
- "summary": ""
-}
- IMPORTANT FORMAT RULES:
-
-- Every item inside arrays must be a plain string.
-- Never return objects.
-- Never use keys like reference/main.
-- Convert comparisons into natural sentences.
-
-Example:
-
-Wrong:
-{
- "reference":"Chlorophyll",
- "main":""
-}
-
-Correct:
-"Chlorophyll is missing from the main document."
-`
     },
 
     {
@@ -413,16 +427,20 @@ res.json({
   result
 });
 
-  } catch(error) {
+  } catch (error) {
 
+    console.error("========== EVALUATE ERROR ==========");
     console.error(error);
 
-    res.status(500).json({
-      success:false,
-      message:"Evaluation failed"
-    });
+    if (error.response) {
+        console.error(error.response.data);
+    }
 
-  }
+    res.status(500).json({
+        success: false,
+        message: error.message
+    });
+}
 
 });
 
