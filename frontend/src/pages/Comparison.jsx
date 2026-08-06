@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import ScoreCard from "../components/comparison/ScoreCard";
-import StrengthCard from "../components/comparison/StrengthCard";
-import MissingCard from "../components/comparison/MissingCard";
-import DifferenceCard from "../components/comparison/DifferenceCard";
-import ImprovementCard from "../components/comparison/ImprovementCard";
-import SummaryCard from "../components/comparison/SummaryCard";
+import ComparisonReport from "../components/comparison/ComparisonReport";
 import "../components/comparison/ComparisonCards.css";
+import UploadScreen from "../components/comparison/UploadScreen";
+import LoadingScreen from "../components/comparison/LoadingScreen";
+
 
 function Comparison() {
   const [referenceFile, setReferenceFile] = useState(null);
@@ -14,6 +12,7 @@ function Comparison() {
   const [evaluated, setEvaluated] = useState(false);
   const [result, setResult] = useState(null);
   const [referenceLanguage, setReferenceLanguage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const API_URL =
     window.location.hostname === "localhost"
@@ -24,6 +23,8 @@ function Comparison() {
 
 
 const evaluateDocument = async () => {
+
+     setLoading(true);
 
   const formData = new FormData();
 
@@ -54,7 +55,8 @@ const evaluateDocument = async () => {
     
     setResult(data.result);
     setEvaluated(true);
-
+     
+    setLoading(false);
 
   } catch(error) {
 
@@ -89,191 +91,41 @@ const formData = new FormData();
   setReferenceLanguage("English");
 };
 
+const resetEvaluation = () => {
+  setReferenceFile(null);
+  setMainFile(null);
+  setEvaluated(false);
+  setResult(null);
+};
+
   return (
-    <div className="comparison-page">
+  <div className="comparison-page">
 
-      <h1>📊 AI Document Evaluation</h1>
+{loading && (
+  <LoadingScreen />
+)}
 
-      <p>
-        Evaluate documents against an active reference.
-      </p>
+    {!loading && !evaluated && (
+      <UploadScreen
+        referenceFile={referenceFile}
+        setReferenceFile={setReferenceFile}
+        mainFile={mainFile}
+        setMainFile={setMainFile}
+        evaluateDocument={evaluateDocument}
+        detectReference={detectReference}
+      />
+    )}
 
-      <div className="comparison-cards">
-
-      {/* Active Reference */}
-<div className="upload-box">
-
-  <h2>📘 Active Reference</h2>
-
-  {!referenceFile ? (
-    <>
-      <p>No reference loaded.</p>
-
-      <label className="file-button">
-        📘 Choose Reference
-
-        <input
-          type="file"
-          hidden
-          onChange={(e) => {
-           const file = e.target.files[0];
-
-           setReferenceFile(file);
-
-           detectReference(file);
-}}
-        />
-      </label>
-    </>
-  ) : (
-    <>
-      <p>📘 {referenceFile.name}</p>
-
-      <p className="ready-text">
-        ✓ Ready
-      </p>
-
-      <div className="button-group">
-
-        <label className="file-button">
-          Replace
-
-          <input
-            type="file"
-            hidden
-           onChange={(e) => {
-              const file = e.target.files[0];
-
-              setReferenceFile(file);
-
-              detectReference(file);
-                  }}
-          />
-        </label>
-
-        <button
-          onClick={() => setReferenceFile(null)}
-        >
-          Remove
-        </button>
-
-      </div>
-    </>
-  )}
-
-</div>
-      <div className="upload-box">
-
-  <h2>📄 Main Document</h2>
-
-  {!mainFile ? (
-    <>
-      <p>No document selected.</p>
-
-      <label className="file-button">
-        📄 Choose Document
-
-        <input
-          type="file"
-          hidden
-          onChange={(e) =>
-            setMainFile(e.target.files[0])
-          }
-        />
-      </label>
-    </>
-  ) : (
-    <>
-      <p>📄 {mainFile.name}</p>
-
-      <label className="file-button">
-        Replace
-
-        <input
-          type="file"
-          hidden
-          onChange={(e) =>
-            setMainFile(e.target.files[0])
-          }
-        />
-      </label>
-    </>
-  )}
-      </div> 
-
-    </div> 
-     
-     <button 
-  className="evaluate-btn"
-  disabled={!referenceFile || !mainFile}
-  onClick={evaluateDocument}
->
-  🤖 Evaluate Document
-</button>
-
-
-<div className="result-box">
-
-  {evaluated && (
-    <button
-      className="evaluate-btn"
-      onClick={() => {
-        setMainFile(null);
-        setEvaluated(false);
-        setResult(null);
-      }}
-    >
-      📄 Evaluate Another Document
-    </button>
-  )}
-
-  <h2>📊 Evaluation Result</h2>
-
-
-  {!result ? (
-
-    <p>
-      Upload a reference and document to start evaluation.
-    </p>
-
-  ) : (
-
- <>
-  <div className="comparison-results">
-
-    <ScoreCard 
-      data={result}
-    />
-
-    <StrengthCard 
-      items={result.strengths}
-    />
-
-    <MissingCard 
-      items={result.missing}
-    />
-
-    <DifferenceCard 
-      items={result.differences}
-    />
-
-    <ImprovementCard 
-      items={result.priorityImprovements}
-    />
-
-    <SummaryCard 
-      text={result.summary}
-    />
+    {!loading && evaluated && (
+      <ComparisonReport
+        result={result}
+       onNewEvaluation={resetEvaluation}
+      />
+    )}
 
   </div>
-</>
+);
 
-  )}
-
-</div>
-
-  </div> /* comparison-page */
-  );
 }
 
 

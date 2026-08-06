@@ -1,7 +1,7 @@
 body {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
-  background: #f4f6f9;
+   background:#eef2f7;
 }
 
 .container {
@@ -264,7 +264,9 @@ pre {
 }
 
 .comparison-cards {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  align-self: start;
   grid-template-columns: repeat(2, 1fr);
   gap: 30px;
   margin: 35px 0;
@@ -313,4 +315,14 @@ pre {
 .upload-box p {
   color: #cbd5e1;
   font-size: 16px;
+}
+
+.comparison-page {
+  min-height: 0;
+  height: auto;
+}
+
+.comparison-report {
+  height: auto;
+  min-height: 0;
 }

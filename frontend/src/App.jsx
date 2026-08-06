@@ -141,14 +141,14 @@ console.log("Uploading language:", documentLanguage);
   };
 
   return (
-   <div className="container">
+   <div>
   <Navbar
     showComparison={showComparison}
     setShowComparison={setShowComparison}
   />
   
 {!showComparison && (
-  <>
+   <div className="container">
     <UploadCard
       file={file}
       setFile={setFile}
@@ -177,7 +177,7 @@ console.log("Uploading language:", documentLanguage);
         documentLanguage={documentLanguage}
       />
     )}
-  </>
+  </div>
 )}
 
 {showComparison && (
