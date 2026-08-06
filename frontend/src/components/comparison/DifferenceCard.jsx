@@ -2,7 +2,7 @@ function DifferenceCard({ items }) {
 
   return (
 
-    <div className="comparison-card">
+    <div className="comparison-card comparison-span-2 difference-card">
 
       <h3>⚠ Differences</h3>
 

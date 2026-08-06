@@ -1,0 +1,90 @@
+.comparison-report {
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+/* New Evaluation button */
+
+.new-evaluation-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+
+/* Header */
+
+.report-header {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.report-header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.report-header p {
+  margin-top: 6px;
+  color: #6b7280;
+}
+
+
+/* Cards layout */
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  max-width: 1200px;
+  margin: auto;
+  align-items: start;
+}
+
+
+/* Common card */
+
+.comparison-card {
+ display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+
+/* Full width sections */
+
+.comparison-span-2 {
+  grid-column: span 2;
+}
+
+
+/* List items */
+
+.item-box {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+
+/* Mobile */
+
+@media(max-width:900px){
+
+  .report-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .comparison-span-2 {
+    grid-column: span 1;
+  }
+
+}
