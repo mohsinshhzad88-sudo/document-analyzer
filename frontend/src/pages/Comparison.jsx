@@ -99,7 +99,7 @@ const resetEvaluation = () => {
 };
 
   return (
-  <div className="comparison-page">
+<div className={`comparison-page ${evaluated ? "report-mode" : "upload-mode"}`}>
 
 {loading && (
   <LoadingScreen />
