@@ -49,6 +49,10 @@ const evaluateDocument = async () => {
     const data = await response.json();
 
     console.log(data);
+
+    console.log("FULL RESULT:", data.result);
+    console.log("IMPROVEMENTS:", data.result?.priorityImprovements);
+
      setReferenceType(data.referenceType);
      
 
