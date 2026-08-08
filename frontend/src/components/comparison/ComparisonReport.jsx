@@ -66,7 +66,7 @@ function ComparisonReport({
 
 
 <ImprovementCard
-  items={result.improvements}
+  items={result.priorityImprovements}
 />
 
 
