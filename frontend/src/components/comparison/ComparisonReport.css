@@ -1,10 +1,12 @@
 .comparison-report {
   width: 100%;
+  max-width: none;
+
+  margin: 0;
   padding: 20px;
+
   box-sizing: border-box;
 }
-
-
 /* New Evaluation button */
 
 .new-evaluation-btn {
@@ -38,10 +40,16 @@
 
 .report-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
   gap: 18px;
-  max-width: 1200px;
-  margin: auto;
+
+  width: 100%;
+  max-width: none;
+
+  margin: 0;
+
   align-items: start;
 }
 
@@ -73,11 +81,82 @@
   border-radius: 12px;
   background: #f8fafc;
 }
+/* =========================
+   ACCORDION ITEMS
+========================= */
+
+.accordion-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  margin-top: 10px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.accordion-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 15px 18px;
+
+  background: #f8fafc;
+  color: #111827;
+
+  border: none;
+  border-radius: 0;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+  text-align: left;
+}
+
+.accordion-header:hover {
+  background: #f1f5f9;
+}
+
+.accordion-arrow {
+  font-size: 12px;
+  margin-left: 12px;
+  color: #64748b;
+}
+
+.accordion-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.accordion-content {
+  padding: 15px 18px;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+.accordion-content p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.difference-content p {
+  margin-bottom: 15px;
+}
+
+.difference-content p:last-child {
+  margin-bottom: 0;
+}
 
 
 /* Mobile */
 
-@media(max-width:900px){
+@media (max-width: 900px) {
+
+  .comparison-report {
+    max-width: 100%;
+  }
 
   .report-grid {
     grid-template-columns: 1fr;
