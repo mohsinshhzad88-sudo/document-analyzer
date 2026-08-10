@@ -2,6 +2,7 @@ import React from "react";
 //import html2pdf from "html2pdf.js";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+
 import "./ComparisonReport.css";
 
 import ScoreCard from "./ScoreCard";
@@ -1047,15 +1048,7 @@ const downloadPDF = async () => {
 
       <div className="report-grid">
 
-<StrengthCard data={result} />
 
-<MissingCard data={result} />
-
-<DifferenceCard data={result} />
-
-<ImprovementCard data={result} />
-
-<SummaryCard data={result} />
 
        
 <StrengthCard
