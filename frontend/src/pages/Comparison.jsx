@@ -4,7 +4,6 @@ import "../components/comparison/ComparisonCards.css";
 import UploadScreen from "../components/comparison/UploadScreen";
 import LoadingScreen from "../components/comparison/LoadingScreen";
 
-
 function Comparison() {
   const [referenceFile, setReferenceFile] = useState(null);
   const [referenceType, setReferenceType] = useState("");
@@ -19,118 +18,96 @@ function Comparison() {
       ? "http://localhost:5000"
       : "https://document-analyzer-two.vercel.app";
 
+  const evaluateDocument = async () => {
+    setLoading(true);
 
+    const formData = new FormData();
 
+    formData.append("reference", referenceFile);
+    formData.append("document", mainFile);
+    formData.append("referenceType", referenceType);
 
-const evaluateDocument = async () => {
+    try {
+      const response = await fetch(
+        `${API_URL}/api/evaluate`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
-     setLoading(true);
+      const data = await response.json();
 
-  const formData = new FormData();
+      console.log(data);
+      console.log("FULL RESULT:", data.result);
+      console.log(
+        "IMPROVEMENTS:",
+        data.result?.priorityImprovements
+      );
 
-  formData.append("reference", referenceFile);
+      setReferenceType(data.referenceType);
+      setResult(data.result);
+      setEvaluated(true);
+      setLoading(false);
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+    }
+  };
 
-  formData.append("document", mainFile);
-  
-  formData.append("referenceType", referenceType);
+  const detectReference = async (file) => {
+    const formData = new FormData();
 
-
-  try {
+    formData.append("document", file);
+    formData.append("documentType", "Auto Detect");
+    formData.append("language", "Auto Detect");
 
     const response = await fetch(
-      `${API_URL}/api/evaluate`,
+      `${API_URL}/api/detect-reference-type`,
       {
         method: "POST",
         body: formData,
       }
     );
 
-
     const data = await response.json();
 
     console.log(data);
 
-    console.log("FULL RESULT:", data.result);
-    console.log("IMPROVEMENTS:", data.result?.priorityImprovements);
+    setReferenceType(data.referenceType);
+    setReferenceLanguage("English");
+  };
 
-     setReferenceType(data.referenceType);
-     
-
-    
-    setResult(data.result);
-    setEvaluated(true);
-     
-    setLoading(false);
-
-  } catch(error) {
-
-    console.error(error);
-
-  }
-
-};
-
-const detectReference = async (file) => {
-
-const formData = new FormData();
-
-  formData.append("document", file);
-
-  formData.append("documentType", "Auto Detect");
-  formData.append("language", "Auto Detect");
-
-  const response = await fetch(
-    "http://localhost:5000/api/detect-reference-type",
-    {
-      method: "POST",
-      body: formData,
-    }
-  );
-
-  const data = await response.json();
-
-  console.log(data);
-
-  setReferenceType(data.referenceType);
-  setReferenceLanguage("English");
-};
-
-const resetEvaluation = () => {
-  setReferenceFile(null);
-  setMainFile(null);
-  setEvaluated(false);
-  setResult(null);
-};
+  const resetEvaluation = () => {
+    setReferenceFile(null);
+    setMainFile(null);
+    setEvaluated(false);
+    setResult(null);
+  };
 
   return (
-<div className={`comparison-page ${evaluated ? "report-mode" : "upload-mode"}`}>
+    <>
+      {loading && <LoadingScreen />}
 
-{loading && (
-  <LoadingScreen />
-)}
+      {!loading && !evaluated && (
+        <UploadScreen
+          referenceFile={referenceFile}
+          setReferenceFile={setReferenceFile}
+          mainFile={mainFile}
+          setMainFile={setMainFile}
+          evaluateDocument={evaluateDocument}
+          detectReference={detectReference}
+        />
+      )}
 
-    {!loading && !evaluated && (
-      <UploadScreen
-        referenceFile={referenceFile}
-        setReferenceFile={setReferenceFile}
-        mainFile={mainFile}
-        setMainFile={setMainFile}
-        evaluateDocument={evaluateDocument}
-        detectReference={detectReference}
-      />
-    )}
-
-    {!loading && evaluated && (
-      <ComparisonReport
-        result={result}
-       onNewEvaluation={resetEvaluation}
-      />
-    )}
-
-  </div>
-);
-
+      {!loading && evaluated && (
+        <ComparisonReport
+          result={result}
+          onNewEvaluation={resetEvaluation}
+        />
+      )}
+    </>
+  );
 }
-
 
 export default Comparison;
