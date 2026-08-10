@@ -167,3 +167,15 @@
   }
 
 }
+
+
+.download-pdf-btn {
+  background: #1d1b1b !important;
+  color: #ffffff !important;
+  border: 1px solid #1d1b1b !important;
+}
+
+.download-pdf-btn:hover {
+  background: #1d1b1b !important;
+  color: #ffffff !important;
+}
