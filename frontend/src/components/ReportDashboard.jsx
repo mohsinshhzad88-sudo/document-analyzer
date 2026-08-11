@@ -1,3 +1,5 @@
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import {
   RadialBarChart,
   RadialBar,
@@ -128,6 +130,633 @@ const getVerdictStyle = (verdict) => {
       ))}
     </ul>
   );
+      
+
+const downloadPDF = async () => {
+  if (!report) {
+    console.error("No report available");
+    return;
+  }
+
+  const pdfElement = document.createElement("div");
+
+  pdfElement.style.position = "absolute";
+  pdfElement.style.left = "-10000px";
+  pdfElement.style.top = "0";
+  pdfElement.style.width = "794px";
+  pdfElement.style.background = "#ffffff";
+  pdfElement.style.color = "#1f2937";
+  pdfElement.style.fontFamily = "Arial, Helvetica, sans-serif";
+  pdfElement.style.boxSizing = "border-box";
+
+  const safe = (value) => {
+    if (value === null || value === undefined) return "";
+
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  };
+
+  const getText = (value, fallback = "") => {
+    if (value === null || value === undefined) {
+      return fallback;
+    }
+
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      return String(value);
+    }
+
+    if (typeof value === "object") {
+      return (
+        value.findings ||
+        value.finding ||
+        value.risk ||
+        value.recommendation ||
+        value.description ||
+        value.text ||
+        value.name ||
+        ""
+      );
+    }
+
+    return fallback;
+  };
+
+  const score = Number(report.overallScore) || 0;
+
+  const verdict = report.finalVerdict || "Evaluation Complete";
+
+  const language =
+    currentDocumentLanguage ||
+    documentLanguage ||
+    "Not specified";
+
+  const quality = report.qualityAnalysis || {};
+
+  const getScoreColor = (value) => {
+    if (value >= 85) return "#15803d";
+    if (value >= 70) return "#b45309";
+    return "#b91c1c";
+  };
+
+  const scoreColor = getScoreColor(score);
+
+  const verdictBg =
+    score >= 85
+      ? "#ecfdf5"
+      : score >= 70
+        ? "#fffbeb"
+        : "#fef2f2";
+
+  const verdictColor =
+    score >= 85
+      ? "#166534"
+      : score >= 70
+        ? "#92400e"
+        : "#991b1b";
+
+  const renderSectionTitle = (number, title, subtitle = "") => `
+    <div style="
+      margin-top: 30px;
+      margin-bottom: 14px;
+      page-break-after: avoid;
+    ">
+      <div style="
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+      ">
+        <span style="
+          font-size: 11px;
+          font-weight: 700;
+          color: #2563eb;
+          letter-spacing: 1px;
+        ">
+          ${number}
+        </span>
+
+        <span style="
+          font-size: 18px;
+          font-weight: 700;
+          color: #111827;
+        ">
+          ${title}
+        </span>
+      </div>
+
+      ${
+        subtitle
+          ? `
+            <div style="
+              margin-top: 4px;
+              margin-left: 30px;
+              font-size: 11px;
+              color: #6b7280;
+            ">
+              ${subtitle}
+            </div>
+          `
+          : ""
+      }
+
+      <div style="
+        height: 1px;
+        background: #d1d5db;
+        margin-top: 10px;
+      "></div>
+    </div>
+  `;
+
+  const renderList = (items, emptyText) => {
+    if (!Array.isArray(items) || items.length === 0) {
+      return `
+        <div style="
+          padding: 14px 4px;
+          font-size: 12px;
+          color: #6b7280;
+        ">
+          ${emptyText}
+        </div>
+      `;
+    }
+
+    return items
+      .map((item, index) => `
+        <div style="
+          display: flex;
+          gap: 12px;
+          padding: 13px 4px;
+          border-bottom: 1px solid #e5e7eb;
+          page-break-inside: avoid;
+        ">
+          <div style="
+            width: 32px;
+            font-size: 10px;
+            color: #9ca3af;
+            font-weight: 700;
+          ">
+            ${String(index + 1).padStart(2, "0")}
+          </div>
+
+          <div style="
+            flex: 1;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #374151;
+          ">
+            ${safe(getText(item))}
+          </div>
+        </div>
+      `)
+      .join("");
+  };
+
+  pdfElement.innerHTML = `
+    <div style="
+      width: 794px;
+      min-height: 1123px;
+      padding: 54px 58px 42px;
+      box-sizing: border-box;
+      background: #ffffff;
+    ">
+
+      <!-- HEADER -->
+
+      <div style="
+        border-bottom: 2px solid #111827;
+        padding-bottom: 22px;
+      ">
+        <div style="
+          font-size: 11px;
+          font-weight: 700;
+          color: #2563eb;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          margin-bottom: 8px;
+        ">
+          DOCUMENT ANALYZER
+        </div>
+
+        <div style="
+          font-size: 30px;
+          font-weight: 700;
+          color: #111827;
+          line-height: 1.2;
+        ">
+          AI Document Audit Report
+        </div>
+
+        <div style="
+          margin-top: 7px;
+          font-size: 12px;
+          color: #6b7280;
+        ">
+          Intelligent document quality and content analysis
+        </div>
+      </div>
+
+      <!-- REPORT INFORMATION -->
+
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        padding: 14px 0;
+        border-bottom: 1px solid #e5e7eb;
+      ">
+
+        <div>
+          <div style="
+            font-size: 9px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          ">
+            Document Type
+          </div>
+
+          <div style="
+            margin-top: 3px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+          ">
+            ${safe(report.documentType || "Document")}
+          </div>
+        </div>
+
+        <div style="text-align: right;">
+          <div style="
+            font-size: 9px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          ">
+            Language
+          </div>
+
+          <div style="
+            margin-top: 3px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+          ">
+            ${safe(language)}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- EXECUTIVE SUMMARY -->
+
+      ${renderSectionTitle(
+        "01",
+        "Executive Summary"
+      )}
+
+      <div style="
+        font-size: 13px;
+        line-height: 1.75;
+        color: #374151;
+        page-break-inside: avoid;
+      ">
+        ${safe(
+          report.executiveSummary ||
+          "No executive summary available."
+        )}
+      </div>
+
+      <!-- KEY FINDINGS -->
+
+      ${renderSectionTitle(
+        "02",
+        "Key Findings",
+        "Important observations identified during document analysis"
+      )}
+
+      <div style="border-top: 1px solid #e5e7eb;">
+        ${renderList(
+          report.keyFindings,
+          "No key findings identified."
+        )}
+      </div>
+
+      <!-- RISKS -->
+
+      ${renderSectionTitle(
+        "03",
+        "Risks",
+        "Potential issues requiring attention"
+      )}
+
+      <div style="border-top: 1px solid #e5e7eb;">
+        ${
+          Array.isArray(report.risks) &&
+          report.risks.length
+            ? renderList(report.risks, "")
+            : `
+              <div style="
+                padding: 14px 4px;
+                font-size: 12px;
+                color: #15803d;
+              ">
+                ✓ No significant risks detected.
+              </div>
+            `
+        }
+      </div>
+
+      <!-- RECOMMENDATIONS -->
+
+      ${renderSectionTitle(
+        "04",
+        "Recommendations",
+        "Suggested actions to improve the document"
+      )}
+
+      <div style="border-top: 1px solid #e5e7eb;">
+        ${renderList(
+          report.recommendations,
+          "No recommendations available."
+        )}
+      </div>
+
+      <!-- QUALITY ANALYSIS -->
+
+      ${renderSectionTitle(
+        "05",
+        "Document Quality Analysis",
+        "Assessment of major document quality dimensions"
+      )}
+
+      <div style="
+        border: 1px solid #d1d5db;
+        background: #fafafa;
+        padding: 18px;
+        page-break-inside: avoid;
+      ">
+
+        ${[
+          ["Writing Quality", quality.writingQuality || 0],
+          ["Structure", quality.structure || 0],
+          ["Themes", quality.themes || 0],
+          ["Consistency", quality.consistency || 0]
+        ]
+          .map(
+            ([name, value]) => `
+              <div style="margin-bottom: 18px;">
+                <div style="
+                  display: flex;
+                  justify-content: space-between;
+                  font-size: 12px;
+                  font-weight: 600;
+                  margin-bottom: 7px;
+                  color: #374151;
+                ">
+                  <span>${name}</span>
+                  <span>${value}%</span>
+                </div>
+
+                <div style="
+                  height: 10px;
+                  background: #e5e7eb;
+                  overflow: hidden;
+                ">
+                  <div style="
+                    width: ${value}%;
+                    height: 100%;
+                    background: ${getScoreColor(value)};
+                  "></div>
+                </div>
+              </div>
+            `
+          )
+          .join("")}
+
+      </div>
+
+      <!-- OVERALL SCORE -->
+
+      ${renderSectionTitle(
+        "06",
+        "Overall Evaluation"
+      )}
+
+      <div style="
+        display: flex;
+        border: 1px solid #d1d5db;
+        background: #fafafa;
+        page-break-inside: avoid;
+      ">
+
+        <div style="
+          width: 50%;
+          padding: 24px;
+          box-sizing: border-box;
+          border-right: 1px solid #d1d5db;
+          text-align: center;
+        ">
+
+          <div style="
+            font-size: 10px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          ">
+            Overall Score
+          </div>
+
+          <div style="
+            margin-top: 6px;
+            font-size: 45px;
+            line-height: 1;
+            font-weight: 700;
+            color: ${scoreColor};
+          ">
+            ${score}
+            <span style="
+              font-size: 18px;
+              color: #9ca3af;
+            ">
+              /100
+            </span>
+          </div>
+
+        </div>
+
+        <div style="
+          width: 50%;
+          padding: 24px;
+          box-sizing: border-box;
+          text-align: center;
+        ">
+
+          <div style="
+            font-size: 10px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          ">
+            Final Verdict
+          </div>
+
+          <div style="
+            display: inline-block;
+            margin-top: 12px;
+            padding: 7px 13px;
+            background: ${verdictBg};
+            color: ${verdictColor};
+            border: 1px solid ${verdictColor};
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+          ">
+            ${safe(verdict)}
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- EVALUATION SUMMARY -->
+
+      ${renderSectionTitle(
+        "07",
+        "Evaluation Summary"
+      )}
+
+      <div style="
+        font-size: 13px;
+        line-height: 1.75;
+        color: #374151;
+        page-break-inside: avoid;
+      ">
+        ${safe(
+          report.evaluationSummary ||
+          "AI evaluation summary not available."
+        )}
+      </div>
+
+      <!-- FOOTER -->
+
+      <div style="
+        margin-top: 42px;
+        padding-top: 12px;
+        border-top: 1px solid #d1d5db;
+        display: flex;
+        justify-content: space-between;
+        font-size: 9px;
+        color: #9ca3af;
+      ">
+        <div>
+          Document Analyzer • AI Document Audit Report
+        </div>
+
+        <div>
+          Confidential Evaluation
+        </div>
+      </div>
+
+    </div>
+  `;
+
+  document.body.appendChild(pdfElement);
+
+  try {
+    await new Promise((resolve) =>
+      setTimeout(resolve, 300)
+    );
+
+    console.log(
+      "PDF SIZE:",
+      pdfElement.offsetWidth,
+      pdfElement.offsetHeight
+    );
+
+    const canvas = await html2canvas(pdfElement, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+    });
+
+    console.log(
+      "CANVAS SIZE:",
+      canvas.width,
+      canvas.height
+    );
+
+    const image = canvas.toDataURL(
+      "image/jpeg",
+      0.98
+    );
+
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+      compress: true,
+    });
+
+    const pdfWidth = 210;
+    const pdfHeight = 297;
+
+    const imgWidth = pdfWidth;
+
+    const imgHeight =
+      (canvas.height * pdfWidth) /
+      canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(
+      image,
+      "JPEG",
+      0,
+      position,
+      imgWidth,
+      imgHeight
+    );
+
+    heightLeft -= pdfHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+
+      pdf.addPage();
+
+      pdf.addImage(
+        image,
+        "JPEG",
+        0,
+        position,
+        imgWidth,
+        imgHeight
+      );
+
+      heightLeft -= pdfHeight;
+    }
+
+    pdf.save("AI-Document-Audit-Report.pdf");
+
+  } catch (error) {
+    console.error(
+      "PDF generation failed:",
+      error
+    );
+  } finally {
+    if (document.body.contains(pdfElement)) {
+      document.body.removeChild(pdfElement);
+    }
+  }
+};
+
 
   return (
     <div
@@ -159,6 +788,25 @@ const getVerdictStyle = (verdict) => {
           {"   "}
           🌍 {currentDocumentLanguage || documentLanguage}
         </p>
+
+        <button
+  onClick={downloadPDF}
+  style={{
+    marginTop: "15px",
+    padding: "11px 20px",
+    borderRadius: "10px",
+    border: "1px solid #111111",
+    background: "#111111",
+    color: "#ffffff",
+    fontWeight: "600",
+    cursor: "pointer",
+    fontSize: "14px",
+  }}
+>
+  📄 Download PDF
+</button>
+
+
       </div>
 
 <div style={cardStyle}>
