@@ -33,8 +33,9 @@ const downloadPDF = async () => {
   pdfElement.style.width = "794px";
   pdfElement.style.background = "#ffffff";
   pdfElement.style.color = "#1f2937";
-  pdfElement.style.fontFamily =
-    "Arial, Helvetica, sans-serif";
+ pdfElement.style.fontFamily =
+  '"Noto Sans", "Noto Sans Arabic", "Segoe UI", Arial, sans-serif';
+ 
   pdfElement.style.boxSizing = "border-box";
 
   const safe = (value) => {
@@ -916,7 +917,37 @@ const downloadPDF = async () => {
     </div>
   `;
 
+  
+
   document.body.appendChild(pdfElement);
+
+  console.log(
+  "BROWSER URDU TEXT:",
+  pdfElement.querySelector("div")?.innerText
+);
+
+  console.log("PDF HTML TEST:", pdfElement.innerText);
+
+  const testUrdu = document.createElement("div");
+
+testUrdu.style.position = "absolute";
+testUrdu.style.left = "-10000px";
+testUrdu.style.top = "0";
+testUrdu.style.width = "794px";
+testUrdu.style.padding = "30px";
+testUrdu.style.background = "#ffffff";
+testUrdu.style.color = "#000000";
+testUrdu.style.fontFamily =
+  '"Noto Sans", "Noto Sans Arabic", "Segoe UI", Arial, sans-serif';
+testUrdu.style.fontSize = "20px";
+testUrdu.style.direction = "rtl";
+testUrdu.style.textAlign = "right";
+
+testUrdu.innerText =
+  "یہ ایک اردو ٹیسٹ ہے جس میں حروف صحیح طرح سے جڑے ہونے چاہئیں۔";
+
+document.body.appendChild(testUrdu);
+console.log("URDU TEST ELEMENT:", testUrdu);
 
   try {
     await new Promise((resolve) =>

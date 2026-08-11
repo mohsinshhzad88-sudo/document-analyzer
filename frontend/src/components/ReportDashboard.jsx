@@ -133,6 +133,7 @@ const getVerdictStyle = (verdict) => {
       
 
 const downloadPDF = async () => {
+  console.log("🔥 NEW PDF CODE IS RUNNING 🔥");
   if (!report) {
     console.error("No report available");
     return;
@@ -146,7 +147,6 @@ const downloadPDF = async () => {
   pdfElement.style.width = "794px";
   pdfElement.style.background = "#ffffff";
   pdfElement.style.color = "#1f2937";
-  pdfElement.style.fontFamily = "Arial, Helvetica, sans-serif";
   pdfElement.style.boxSizing = "border-box";
 
   const safe = (value) => {
@@ -196,6 +196,37 @@ const downloadPDF = async () => {
     currentDocumentLanguage ||
     documentLanguage ||
     "Not specified";
+
+  const languageCode = String(language || "")
+  .toLowerCase()
+  .split("-")[0]
+  .split("_")[0];
+
+const rtlLanguages = [
+  "ar", // Arabic
+  "ur", // Urdu
+  "fa", // Persian
+  "he", // Hebrew
+  "ps", // Pashto
+  "sd", // Sindhi
+];
+
+const isRTL = rtlLanguages.includes(languageCode);
+
+const textDirection = isRTL ? "rtl" : "ltr";
+const textAlign = isRTL ? "right" : "left";
+
+const textFont =
+  languageCode === "ur"
+    ? '"Noto Nastaliq Urdu", "Noto Sans Arabic", "Noto Sans", sans-serif'
+    : isRTL
+      ? '"Noto Sans Arabic", "Noto Sans", "Segoe UI", Arial, sans-serif'
+      : '"Noto Sans", "Noto Sans Devanagari", "Segoe UI", Arial, sans-serif';
+
+
+  pdfElement.style.fontFamily = textFont;
+  pdfElement.style.direction = textDirection;
+  pdfElement.style.textAlign = textAlign;
 
   const quality = report.qualityAnalysis || {};
 
@@ -309,6 +340,12 @@ const downloadPDF = async () => {
             font-size: 13px;
             line-height: 1.6;
             color: #374151;
+
+             direction: ${textDirection};
+             text-align: ${textAlign};
+             font-family: ${textFont};
+
+            unicode-bidi: plaintext;
           ">
             ${safe(getText(item))}
           </div>
@@ -324,6 +361,10 @@ const downloadPDF = async () => {
       padding: 54px 58px 42px;
       box-sizing: border-box;
       background: #ffffff;
+
+       direction: ${textDirection};
+       text-align: ${textAlign};
+       font-family: ${textFont};
     ">
 
       <!-- HEADER -->
@@ -424,6 +465,12 @@ const downloadPDF = async () => {
         line-height: 1.75;
         color: #374151;
         page-break-inside: avoid;
+
+         direction: ${textDirection};
+         text-align: ${textAlign};
+         font-family: ${textFont};
+
+          unicode-bidi: plaintext;
       ">
         ${safe(
           report.executiveSummary ||
@@ -665,25 +712,95 @@ const downloadPDF = async () => {
     </div>
   `;
 
-  document.body.appendChild(pdfElement);
+ document.body.appendChild(pdfElement);
 
-  try {
-    await new Promise((resolve) =>
-      setTimeout(resolve, 300)
-    );
+console.log("🔥 PDF ELEMENT APPENDED 🔥");
 
-    console.log(
-      "PDF SIZE:",
-      pdfElement.offsetWidth,
-      pdfElement.offsetHeight
-    );
+console.log(
+  "BROWSER TEXT:",
+  pdfElement.querySelector("div")?.innerText
+);
 
-    const canvas = await html2canvas(pdfElement, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-      logging: false,
+console.log("PDF HTML TEST:", pdfElement.innerText);
+
+try {
+
+  // ⭐ WAIT FOR WEB FONTS
+  if (document.fonts && document.fonts.ready) {
+    await document.fonts.ready;
+  }
+
+  // ⭐ FORCE THE EXACT FONTS WE NEED
+// ⭐ FORCE THE EXACT FONTS WE NEED
+await Promise.all([
+  document.fonts.load('400 20px "Noto Nastaliq Urdu"'),
+  document.fonts.load('400 20px "Noto Sans Arabic"'),
+  document.fonts.load('600 20px "Noto Sans Arabic"'),
+  document.fonts.load('700 20px "Noto Sans Arabic"'),
+  document.fonts.load('400 20px "Noto Sans"'),
+  document.fonts.load('600 20px "Noto Sans"'),
+  document.fonts.load('700 20px "Noto Sans"'),
+  document.fonts.load('400 20px "Noto Sans Devanagari"')
+]);
+
+  // Give the browser one more rendering frame
+  await new Promise((resolve) =>
+    requestAnimationFrame(() => {
+      requestAnimationFrame(resolve);
+    })
+  );
+
+  console.log("🔥 FONTS READY 🔥");
+
+  console.log(
+  "Nastaliq loaded:",
+  document.fonts.check('400 20px "Noto Nastaliq Urdu"')
+);
+
+console.log(
+  "Arabic loaded:",
+  document.fonts.check('400 20px "Noto Sans Arabic"')
+);
+
+  console.log(
+  "PDF IMAGES:",
+  pdfElement.querySelectorAll("img").length
+);
+
+console.log(
+  "PDF IMAGE SOURCES:",
+  [...pdfElement.querySelectorAll("img")].map(img => img.src)
+);
+
+  console.log(
+    "PDF SIZE:",
+    pdfElement.offsetWidth,
+    pdfElement.offsetHeight
+  );
+
+
+   const canvas = await html2canvas(pdfElement, {
+  scale: 2,
+  useCORS: true,
+  backgroundColor: "#ffffff",
+  logging: false,
+
+  ignoreElements: (element) => {
+    return element.tagName === "IMG";
+  },
+
+  onclone: (clonedDocument) => {
+    // Remove anything that could trigger an image-loading error
+    clonedDocument.querySelectorAll("img").forEach((img) => {
+      img.remove();
     });
+
+    // Remove background images
+    clonedDocument.querySelectorAll("*").forEach((element) => {
+      element.style.backgroundImage = "none";
+    });
+  },
+});
 
     console.log(
       "CANVAS SIZE:",
