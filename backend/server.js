@@ -860,7 +860,7 @@ app.get("/api/test-urdu-pdf", async (req, res) => {
   let browser;
 
   try {
-    const puppeteer = require("puppeteer");
+    let puppeteer;
 
     console.log("=================================");
     console.log("Starting Chromium Urdu PDF test...");
@@ -1022,12 +1022,15 @@ app.get("/api/test-urdu-pdf", async (req, res) => {
 
 
 
-const puppeteer = require("puppeteer");
+
 
 app.post("/api/generate-pdf", async (req, res) => {
   let browser;
 
   try {
+    const puppeteerModule = await import("puppeteer");
+    const puppeteer = puppeteerModule.default || puppeteerModule;
+
     const { html } = req.body;
 
     if (!html) {
