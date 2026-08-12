@@ -862,8 +862,13 @@ console.log(
   
 console.log("🔥 Sending report HTML to Puppeteer...");
 
+const API_URL = import.meta.env.VITE_API_URL;
+
+console.log("🔥 Sending report HTML to Puppeteer...");
+console.log("PDF API:", `${API_URL}/api/generate-pdf`);
+
 const response = await fetch(
-  "http://localhost:5000/api/generate-pdf",
+  `${API_URL}/api/generate-pdf`,
   {
     method: "POST",
     headers: {
@@ -871,7 +876,7 @@ const response = await fetch(
     },
     body: JSON.stringify({
       html: pdfElement.innerHTML,
-       jameelFont: jameelFontBase64,
+      jameelFont: jameelFontBase64,
     }),
   }
 );
