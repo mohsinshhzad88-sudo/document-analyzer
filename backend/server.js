@@ -5,6 +5,8 @@ const fs = require("fs");
 const cors = require("cors");
 const multer = require("multer");
 const Groq = require("groq-sdk");
+const chromium = require("@sparticuz/chromium");
+const puppeteer = require("puppeteer-core");
 const path = require("path");
 const chunkText = require("./utils/chunkText");
 const getprompt = require("./prompts");
@@ -1028,8 +1030,7 @@ app.post("/api/generate-pdf", async (req, res) => {
   let browser;
 
   try {
-    const puppeteerModule = await import("puppeteer");
-    const puppeteer = puppeteerModule.default || puppeteerModule;
+    
 
     const { html } = req.body;
 
@@ -1052,13 +1053,12 @@ app.post("/api/generate-pdf", async (req, res) => {
 
     const fontBase64 = fs.readFileSync(fontPath).toString("base64");
 
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox"
-      ]
-    });
+  browser = await puppeteer.launch({
+  args: chromium.args,
+  defaultViewport: chromium.defaultViewport,
+  executablePath: await chromium.executablePath(),
+  headless: chromium.headless,
+});
 
     const page = await browser.newPage();
 
