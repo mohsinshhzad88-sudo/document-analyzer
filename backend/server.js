@@ -35,7 +35,7 @@ app.use(cors({
 }));
 
 
-app.use(express.json());
+app.use(express.json({ limit: "20mb" }));
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
@@ -850,6 +850,310 @@ res.json({
 
 }
 
+});
+
+// ============================================
+// TEST: Chromium Urdu PDF
+// ============================================
+
+app.get("/api/test-urdu-pdf", async (req, res) => {
+  let browser;
+
+  try {
+    const puppeteer = require("puppeteer");
+
+    console.log("=================================");
+    console.log("Starting Chromium Urdu PDF test...");
+    console.log("=================================");
+
+    // Local font inside frontend/public/fonts
+    const fontPath = path.join(
+      __dirname,
+      "../frontend/public/fonts/Jameel Noori Nastaleeq Regular.ttf"
+    );
+
+    console.log("Font path:", fontPath);
+
+    if (!fs.existsSync(fontPath)) {
+      throw new Error(`Font not found: ${fontPath}`);
+    }
+
+    // Convert font to Base64 so Chromium can load it directly
+    const fontBase64 = fs.readFileSync(fontPath).toString("base64");
+
+    browser = await puppeteer.launch({
+      headless: true
+    });
+
+    const page = await browser.newPage();
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="ur" dir="rtl">
+      <head>
+        <meta charset="UTF-8">
+
+        <style>
+
+          @font-face {
+            font-family: "Jameel Noori Nastaleeq";
+            src: url(data:font/ttf;base64,${fontBase64}) format("truetype");
+            font-weight: normal;
+            font-style: normal;
+          }
+
+          * {
+            box-sizing: border-box;
+          }
+
+          body {
+            margin: 0;
+            padding: 60px;
+            background: white;
+            color: #111;
+            font-family: "Jameel Noori Nastaleeq", serif;
+            direction: rtl;
+            text-align: right;
+          }
+
+          h1 {
+            font-size: 32px;
+            margin-bottom: 30px;
+          }
+
+          p {
+            font-size: 25px;
+            line-height: 2.2;
+            margin-bottom: 25px;
+          }
+
+          .english {
+            direction: ltr;
+            text-align: left;
+            font-family: Arial, sans-serif;
+          }
+
+        </style>
+      </head>
+
+      <body>
+
+        <h1>اردو PDF ٹیسٹ</h1>
+
+        <p>
+          یہ ایک اردو ٹیسٹ ہے۔
+        </p>
+
+        <p>
+          یہ دستاویز اردو زبان میں لکھی گئی ہے اور
+          کمپیوٹر سائنس کے بارے میں معلومات فراہم کرتی ہے۔
+        </p>
+
+        <p>
+          محمد علی نے کمپیوٹر سائنس میں اپنی دلچسپی
+          اور مستقبل کے منصوبوں کے بارے میں بات کی۔
+        </p>
+
+        <p>
+          اردو الفاظ صحیح طریقے سے جڑنے چاہئیں اور
+          متن PDF میں منتخب اور کاپی کیا جا سکے۔
+        </p>
+
+        <p class="english">
+          English text should also work correctly.
+        </p>
+
+      </body>
+      </html>
+    `;
+
+      await page.setContent(html, {
+      waitUntil: "domcontentloaded",
+    timeout: 30000
+      });
+
+   
+    // Make absolutely sure the font has loaded
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+    });
+
+    console.log("Fonts ready");
+
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: {
+        top: "20mm",
+        right: "20mm",
+        bottom: "20mm",
+        left: "20mm"
+      }
+    });
+
+    console.log("PDF generated successfully");
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="urdu-chromium-test.pdf"'
+    );
+
+    res.send(pdfBuffer);
+
+  } catch (error) {
+
+    console.error("========== URDU PDF TEST ERROR ==========");
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  } finally {
+
+    if (browser) {
+      await browser.close();
+    }
+
+  }
+});
+
+
+
+const puppeteer = require("puppeteer");
+
+app.post("/api/generate-pdf", async (req, res) => {
+  let browser;
+
+  try {
+    const { html } = req.body;
+
+    if (!html) {
+      return res.status(400).json({
+        success: false,
+        message: "No HTML provided"
+      });
+    }
+
+    console.log("🔥 Puppeteer PDF generation started");
+
+    const fontPath = path.join(
+      __dirname,
+      "../frontend/public/fonts/Jameel Noori Nastaleeq Regular.ttf"
+    );
+
+    console.log("Font path:", fontPath);
+    console.log("Font exists:", fs.existsSync(fontPath));
+
+    const fontBase64 = fs.readFileSync(fontPath).toString("base64");
+
+    browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox"
+      ]
+    });
+
+    const page = await browser.newPage();
+
+    await page.setViewport({
+      width: 794,
+      height: 1123,
+      deviceScaleFactor: 1
+    });
+
+    const fullHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<style>
+
+@font-face {
+  font-family: "Jameel Noori Nastaleeq";
+  src: url("data:font/ttf;base64,${fontBase64}") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: white;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+</style>
+
+</head>
+
+<body>
+
+${html}
+
+</body>
+</html>
+`;
+
+  await page.setContent(fullHtml, {
+  waitUntil: "domcontentloaded",
+  timeout: 30000
+});
+
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+    });
+
+    console.log("🔥 Browser fonts ready");
+
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      preferCSSPageSize: false,
+      margin: {
+        top: "0",
+        right: "0",
+        bottom: "0",
+        left: "0"
+      }
+    });
+
+    console.log("🔥 PDF generated");
+
+    res.setHeader("Content-Type", "application/pdf");
+
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="AI-Document-Audit-Report.pdf"'
+    );
+
+    res.send(pdfBuffer);
+
+  } catch (error) {
+
+    console.error("🔥 PUPPETEER PDF ERROR:");
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  } finally {
+
+    if (browser) {
+      await browser.close();
+    }
+
+  }
 });
 
 const PORT = process.env.PORT || 5000;

@@ -131,8 +131,58 @@ const getVerdictStyle = (verdict) => {
     </ul>
   );
       
+  async function testUrduJsPDF() {
+  try {
+    const response = await fetch(
+      "/fonts/Jameel%20Noori%20Nastaleeq%20Regular.ttf"
+    );
+
+    const fontBuffer = await response.arrayBuffer();
+
+    const uint8Array = new Uint8Array(fontBuffer);
+
+    let binary = "";
+    uint8Array.forEach((byte) => {
+      binary += String.fromCharCode(byte);
+    });
+
+    const fontBase64 = btoa(binary);
+
+    const doc = new jsPDF();
+
+    doc.addFileToVFS(
+      "JameelNooriNastaleeq.ttf",
+      fontBase64
+    );
+
+    doc.addFont(
+      "JameelNooriNastaleeq.ttf",
+      "JameelNooriNastaleeq",
+      "normal"
+    );
+
+    doc.setFont("JameelNooriNastaleeq");
+    doc.setFontSize(24);
+
+    doc.text("TEST", 50, 50);
+
+    doc.text("یہ", 50, 100);
+    doc.text("ایک", 50, 150);
+    doc.text("اردو", 50, 200);
+
+    doc.save("urdu-jsPDF-test.pdf");
+
+    console.log("🔥 jsPDF URDU TEST CREATED 🔥");
+
+  } catch (error) {
+    console.error("❌ jsPDF URDU TEST ERROR:", error);
+  }
+}
 
 const downloadPDF = async () => {
+
+ 
+
   console.log("🔥 NEW PDF CODE IS RUNNING 🔥");
   if (!report) {
     console.error("No report available");
@@ -218,7 +268,7 @@ const textAlign = isRTL ? "right" : "left";
 
 const textFont =
   languageCode === "ur"
-    ? '"Noto Nastaliq Urdu", "Noto Sans Arabic", "Noto Sans", sans-serif'
+    ? '"Jameel Noori Nastaleeq", "Noto Sans Arabic", "Noto Sans", sans-serif'
     : isRTL
       ? '"Noto Sans Arabic", "Noto Sans", "Segoe UI", Arial, sans-serif'
       : '"Noto Sans", "Noto Sans Devanagari", "Segoe UI", Arial, sans-serif';
@@ -730,10 +780,40 @@ try {
     await document.fonts.ready;
   }
 
+
+   const jameelFont = new FontFace(
+  "Jameel Noori Nastaleeq",
+  'url("/fonts/Jameel%20Noori%20Nastaleeq%20Regular.ttf")'
+);
+
+await jameelFont.load();
+document.fonts.add(jameelFont);
+
+const fontResponse = await fetch(
+  "/fonts/Jameel%20Noori%20Nastaleeq%20Regular.ttf"
+);
+
+const fontBuffer = await fontResponse.arrayBuffer();
+
+const fontBytes = new Uint8Array(fontBuffer);
+
+let fontBinary = "";
+
+fontBytes.forEach((byte) => {
+  fontBinary += String.fromCharCode(byte);
+});
+
+const jameelFontBase64 = btoa(fontBinary);
+
+console.log("🔥 JAMEEL FONT BASE64 READY");
+
   // ⭐ FORCE THE EXACT FONTS WE NEED
 // ⭐ FORCE THE EXACT FONTS WE NEED
+
+
 await Promise.all([
   document.fonts.load('400 20px "Noto Nastaliq Urdu"'),
+  document.fonts.load('400 20px "Jameel Noori Nastaleeq"'),
   document.fonts.load('400 20px "Noto Sans Arabic"'),
   document.fonts.load('600 20px "Noto Sans Arabic"'),
   document.fonts.load('700 20px "Noto Sans Arabic"'),
@@ -779,88 +859,55 @@ console.log(
   );
 
 
-   const canvas = await html2canvas(pdfElement, {
-  scale: 2,
-  useCORS: true,
-  backgroundColor: "#ffffff",
-  logging: false,
+  
+console.log("🔥 Sending report HTML to Puppeteer...");
 
-  ignoreElements: (element) => {
-    return element.tagName === "IMG";
-  },
+const response = await fetch(
+  "http://localhost:5000/api/generate-pdf",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      html: pdfElement.innerHTML,
+       jameelFont: jameelFontBase64,
+    }),
+  }
+);
 
-  onclone: (clonedDocument) => {
-    // Remove anything that could trigger an image-loading error
-    clonedDocument.querySelectorAll("img").forEach((img) => {
-      img.remove();
-    });
+if (!response.ok) {
+  const errorText = await response.text();
 
-    // Remove background images
-    clonedDocument.querySelectorAll("*").forEach((element) => {
-      element.style.backgroundImage = "none";
-    });
-  },
-});
+  throw new Error(
+    `PDF server error: ${response.status} ${errorText}`
+  );
+}
 
-    console.log(
-      "CANVAS SIZE:",
-      canvas.width,
-      canvas.height
-    );
+const pdfBlob = await response.blob();
 
-    const image = canvas.toDataURL(
-      "image/jpeg",
-      0.98
-    );
+console.log(
+  "🔥 PDF received:",
+  pdfBlob.size,
+  "bytes"
+);
 
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-      compress: true,
-    });
+const url = URL.createObjectURL(pdfBlob);
 
-    const pdfWidth = 210;
-    const pdfHeight = 297;
+const link = document.createElement("a");
 
-    const imgWidth = pdfWidth;
+link.href = url;
+link.download = "AI-Document-Audit-Report.pdf";
 
-    const imgHeight =
-      (canvas.height * pdfWidth) /
-      canvas.width;
+document.body.appendChild(link);
 
-    let heightLeft = imgHeight;
-    let position = 0;
+link.click();
 
-    pdf.addImage(
-      image,
-      "JPEG",
-      0,
-      position,
-      imgWidth,
-      imgHeight
-    );
+link.remove();
 
-    heightLeft -= pdfHeight;
+URL.revokeObjectURL(url);
 
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-
-      pdf.addPage();
-
-      pdf.addImage(
-        image,
-        "JPEG",
-        0,
-        position,
-        imgWidth,
-        imgHeight
-      );
-
-      heightLeft -= pdfHeight;
-    }
-
-    pdf.save("AI-Document-Audit-Report.pdf");
+console.log("🔥 PDF DOWNLOAD COMPLETE 🔥");
 
   } catch (error) {
     console.error(
@@ -921,6 +968,10 @@ console.log(
   }}
 >
   📄 Download PDF
+</button>
+
+<button onClick={testUrduJsPDF}>
+  Test Urdu jsPDF
 </button>
 
 
