@@ -924,6 +924,14 @@ if (process.env.VERCEL === "1") {
   "Jameel Noori Nastaleeq Regular.ttf"
 );
 
+console.log("🔥 __dirname:", __dirname);
+console.log("🔥 FONT PATH:", fontPath);
+console.log("🔥 FONT EXISTS:", fs.existsSync(fontPath));
+
+if (fs.existsSync(fontPath)) {
+  console.log("🔥 FONT SIZE:", fs.statSync(fontPath).size);
+}
+
 const fontBuffer = fs.readFileSync(fontPath);
 const fontBase64 = fontBuffer.toString("base64");
 
@@ -1142,6 +1150,14 @@ app.post("/api/generate-pdf", async (req, res) => {
       "fonts",
       "Jameel Noori Nastaleeq Regular.ttf"
         );  
+
+console.log("🔥 __dirname:", __dirname);
+console.log("🔥 FONT PATH:", fontPath);
+console.log("🔥 FONT EXISTS:", fs.existsSync(fontPath));
+
+if (fs.existsSync(fontPath)) {
+  console.log("🔥 FONT SIZE:", fs.statSync(fontPath).size);
+}
 
     let fontCss = "";
 
