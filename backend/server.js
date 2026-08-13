@@ -5,9 +5,8 @@ const fs = require("fs");
 const cors = require("cors");
 const multer = require("multer");
 const Groq = require("groq-sdk");
-const chromium = require("@sparticuz/chromium");
-const puppeteer = require("puppeteer-core");
 const path = require("path");
+const puppeteer = require("puppeteer-core");
 const chunkText = require("./utils/chunkText");
 const getprompt = require("./prompts");
 const getComparisonPrompt = require("./prompts/comparisonPrompts");
@@ -862,30 +861,33 @@ app.get("/api/test-urdu-pdf", async (req, res) => {
   let browser;
 
   try {
-    let puppeteer;
+    
 
     console.log("=================================");
     console.log("Starting Chromium Urdu PDF test...");
     console.log("=================================");
 
     // Local font inside frontend/public/fonts
-    const fontPath = path.join(
-      __dirname,
-      "../frontend/public/fonts/Jameel Noori Nastaleeq Regular.ttf"
-    );
+    
 
-    console.log("Font path:", fontPath);
+    const chromium = await import("@sparticuz/chromium");
 
-    if (!fs.existsSync(fontPath)) {
-      throw new Error(`Font not found: ${fontPath}`);
-    }
+//browser = await puppeteer.launch({
+ // args: chromium.default.args,
+ // defaultViewport: chromium.default.defaultViewport,
+ // executablePath: await chromium.default.executablePath(),
+  //headless: chromium.default.headless,
+//});
 
-    // Convert font to Base64 so Chromium can load it directly
-    const fontBase64 = fs.readFileSync(fontPath).toString("base64");
+browser = await puppeteer.launch({
+  executablePath: "C:\\Users\\iShop\\.cache\\puppeteer\\chrome\\win64-151.0.7922.77\\chrome-win64\\chrome.exe",
+  headless: true,
+  args: [
+    "--no-sandbox",
+    "--disable-setuid-sandbox"
+  ]
+});
 
-    browser = await puppeteer.launch({
-      headless: true
-    });
 
     const page = await browser.newPage();
 
@@ -1024,15 +1026,13 @@ app.get("/api/test-urdu-pdf", async (req, res) => {
 
 
 
-
-
 app.post("/api/generate-pdf", async (req, res) => {
   let browser;
 
   try {
-    
+    console.log("🔥 SERVERLESS PDF REQUEST STARTED");
 
-    const { html } = req.body;
+    const { html, jameelFont } = req.body || {};
 
     if (!html) {
       return res.status(400).json({
@@ -1041,24 +1041,50 @@ app.post("/api/generate-pdf", async (req, res) => {
       });
     }
 
-    console.log("🔥 Puppeteer PDF generation started");
+    console.log("🔥 HTML received:", html.length);
+    console.log("🔥 Jameel font received:", !!jameelFont);
 
-    const fontPath = path.join(
-      __dirname,
-      "../frontend/public/fonts/Jameel Noori Nastaleeq Regular.ttf"
-    );
+    const chromiumModule = await import("@sparticuz/chromium");
+    const chromium = chromiumModule.default || chromiumModule;
 
-    console.log("Font path:", fontPath);
-    console.log("Font exists:", fs.existsSync(fontPath));
+    console.log("🔥 Chromium module loaded");
 
-    const fontBase64 = fs.readFileSync(fontPath).toString("base64");
+    const executablePath = await chromium.executablePath();
+
+    console.log("🔥 Chromium executable:", executablePath);
+
+    //browser = await puppeteer.launch({
+     // args: chromium.args,
+    //  defaultViewport: chromium.defaultViewport,
+     // executablePath,
+     // headless: chromium.headless
+    //});
+
+    if (process.env.VERCEL === "1") {
+  console.log("🔥 VERCEL: Using Sparticuz Chromium");
 
   browser = await puppeteer.launch({
-  args: chromium.args,
-  defaultViewport: chromium.defaultViewport,
-  executablePath: await chromium.executablePath(),
-  headless: chromium.headless,
-});
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath,
+    headless: chromium.headless
+  });
+
+} else {
+  console.log("🔥 LOCAL: Using installed Chrome");
+
+  browser = await puppeteer.launch({
+    executablePath:
+      "C:\\Users\\iShop\\.cache\\puppeteer\\chrome\\win64-151.0.7922.77\\chrome-win64\\chrome.exe",
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox"
+    ]
+  });
+}
+
+    console.log("🔥 Browser launched");
 
     const page = await browser.newPage();
 
@@ -1068,6 +1094,17 @@ app.post("/api/generate-pdf", async (req, res) => {
       deviceScaleFactor: 1
     });
 
+    const fontCss = jameelFont
+      ? `
+        @font-face {
+          font-family: "Jameel Noori Nastaleeq";
+          src: url("data:font/ttf;base64,${jameelFont}") format("truetype");
+          font-weight: normal;
+          font-style: normal;
+        }
+      `
+      : "";
+
     const fullHtml = `
 <!DOCTYPE html>
 <html>
@@ -1076,12 +1113,7 @@ app.post("/api/generate-pdf", async (req, res) => {
 
 <style>
 
-@font-face {
-  font-family: "Jameel Noori Nastaleeq";
-  src: url("data:font/ttf;base64,${fontBase64}") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-}
+${fontCss}
 
 html,
 body {
@@ -1106,10 +1138,12 @@ ${html}
 </html>
 `;
 
-  await page.setContent(fullHtml, {
-  waitUntil: "domcontentloaded",
-  timeout: 30000
-});
+    console.log("🔥 Setting page HTML");
+
+    await page.setContent(fullHtml, {
+      waitUntil: "domcontentloaded",
+      timeout: 30000
+    });
 
     await page.evaluate(async () => {
       await document.fonts.ready;
@@ -1129,9 +1163,12 @@ ${html}
       }
     });
 
-    console.log("🔥 PDF generated");
+    console.log("🔥 PDF GENERATED:", pdfBuffer.length);
 
-    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Type",
+      "application/pdf"
+    );
 
     res.setHeader(
       "Content-Disposition",
@@ -1142,7 +1179,7 @@ ${html}
 
   } catch (error) {
 
-    console.error("🔥 PUPPETEER PDF ERROR:");
+    console.error("🔥 SERVERLESS PUPPETEER ERROR:");
     console.error(error);
 
     res.status(500).json({
@@ -1153,11 +1190,17 @@ ${html}
   } finally {
 
     if (browser) {
-      await browser.close();
+      try {
+        await browser.close();
+      } catch (closeError) {
+        console.error("Browser close error:", closeError);
+      }
     }
 
   }
 });
+
+
 
 const PORT = process.env.PORT || 5000;
  

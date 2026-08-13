@@ -862,7 +862,9 @@ console.log(
   
 console.log("🔥 Sending report HTML to Puppeteer...");
 
-const API_URL = "https://document-analyzer-two.vercel.app";
+const API_URL = import.meta.env.DEV
+  ? "http://localhost:5000"
+  : "https://document-analyzer-two.vercel.app";
 
 console.log("🔥 Sending report HTML to Puppeteer...");
 console.log("PDF API:", `${API_URL}/api/generate-pdf`);
