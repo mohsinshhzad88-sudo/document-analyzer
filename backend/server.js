@@ -1043,14 +1043,13 @@ if (process.env.VERCEL === "1") {
 });
 
 
-
 app.post("/api/generate-pdf", async (req, res) => {
   let browser;
 
   try {
     console.log("🔥 SERVERLESS PDF REQUEST STARTED");
 
-    const { html, jameelFont } = req.body || {};
+    const { html } = req.body || {};
 
     if (!html) {
       return res.status(400).json({
@@ -1060,13 +1059,12 @@ app.post("/api/generate-pdf", async (req, res) => {
     }
 
     console.log("🔥 HTML received:", html.length);
-    console.log("🔥 Jameel font received:", !!jameelFont);
 
-   const chromiumModule = await import("@sparticuz/chromium");
-   const chromium = chromiumModule.default || chromiumModule;
+    const chromiumModule = await import("@sparticuz/chromium");
+    const chromium = chromiumModule.default || chromiumModule;
 
-   const puppeteerModule = await import("puppeteer-core");
-   const puppeteer = puppeteerModule.default || puppeteerModule;
+    const puppeteerModule = await import("puppeteer-core");
+    const puppeteer = puppeteerModule.default || puppeteerModule;
 
     console.log("🔥 Chromium module loaded");
 
@@ -1074,36 +1072,31 @@ app.post("/api/generate-pdf", async (req, res) => {
 
     console.log("🔥 Chromium executable:", executablePath);
 
-    //browser = await puppeteer.launch({
-     // args: chromium.args,
-    //  defaultViewport: chromium.defaultViewport,
-     // executablePath,
-     // headless: chromium.headless
-    //});
-
     if (process.env.VERCEL === "1") {
-  console.log("🔥 VERCEL: Using Sparticuz Chromium");
 
-  browser = await puppeteer.launch({
-    args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath,
-    headless: chromium.headless
-  });
+      console.log("🔥 VERCEL: Using Sparticuz Chromium");
 
-} else {
-  console.log("🔥 LOCAL: Using installed Chrome");
+      browser = await puppeteer.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath,
+        headless: chromium.headless
+      });
 
-  browser = await puppeteer.launch({
-    executablePath:
-      "C:\\Users\\iShop\\.cache\\puppeteer\\chrome\\win64-151.0.7922.77\\chrome-win64\\chrome.exe",
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox"
-    ]
-  });
-}
+    } else {
+
+      console.log("🔥 LOCAL: Using installed Chrome");
+
+      browser = await puppeteer.launch({
+        executablePath:
+          "C:\\Users\\iShop\\.cache\\puppeteer\\chrome\\win64-151.0.7922.77\\chrome-win64\\chrome.exe",
+        headless: true,
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox"
+        ]
+      });
+    }
 
     console.log("🔥 Browser launched");
 
@@ -1115,21 +1108,56 @@ app.post("/api/generate-pdf", async (req, res) => {
       deviceScaleFactor: 1
     });
 
-    const fontCss = jameelFont
-      ? `
+    /*
+     * ============================================
+     * LOAD JAMEEL NOORI NASTALEEQ FROM SERVER
+     * ============================================
+     */
+
+    const fontPath = path.join(
+      __dirname,
+      "fonts",
+      "Jameel Noori Nastaleeq Regular.ttf"
+    );
+
+    let fontCss = "";
+
+    if (fs.existsSync(fontPath)) {
+
+      console.log("🔥 Jameel font found:", fontPath);
+
+      const fontBuffer = fs.readFileSync(fontPath);
+
+      const fontBase64 = fontBuffer.toString("base64");
+
+      console.log(
+        "🔥 Jameel font loaded:",
+        fontBuffer.length,
+        "bytes"
+      );
+
+      fontCss = `
         @font-face {
           font-family: "Jameel Noori Nastaleeq";
-          src: url("data:font/ttf;base64,${jameelFont}") format("truetype");
+          src: url("data:font/ttf;base64,${fontBase64}") format("truetype");
           font-weight: normal;
           font-style: normal;
         }
-      `
-      : "";
+      `;
+
+    } else {
+
+      console.log(
+        "⚠️ Jameel font NOT FOUND:",
+        fontPath
+      );
+    }
 
     const fullHtml = `
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta charset="UTF-8">
 
 <style>
@@ -1156,6 +1184,7 @@ body {
 ${html}
 
 </body>
+
 </html>
 `;
 
@@ -1184,7 +1213,11 @@ ${html}
       }
     });
 
-    console.log("🔥 PDF GENERATED:", pdfBuffer.length);
+    console.log(
+      "🔥 PDF GENERATED:",
+      pdfBuffer.length,
+      "bytes"
+    );
 
     res.setHeader(
       "Content-Type",
@@ -1211,16 +1244,21 @@ ${html}
   } finally {
 
     if (browser) {
+
       try {
         await browser.close();
+
       } catch (closeError) {
-        console.error("Browser close error:", closeError);
+
+        console.error(
+          "Browser close error:",
+          closeError
+        );
+
       }
     }
-
   }
 });
-
 
 
 const PORT = process.env.PORT || 5000;

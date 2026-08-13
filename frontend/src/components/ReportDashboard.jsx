@@ -789,24 +789,6 @@ try {
 await jameelFont.load();
 document.fonts.add(jameelFont);
 
-const fontResponse = await fetch(
-  "/fonts/Jameel%20Noori%20Nastaleeq%20Regular.ttf"
-);
-
-const fontBuffer = await fontResponse.arrayBuffer();
-
-const fontBytes = new Uint8Array(fontBuffer);
-
-let fontBinary = "";
-
-fontBytes.forEach((byte) => {
-  fontBinary += String.fromCharCode(byte);
-});
-
-const jameelFontBase64 = btoa(fontBinary);
-
-console.log("🔥 JAMEEL FONT BASE64 READY");
-
   // ⭐ FORCE THE EXACT FONTS WE NEED
 // ⭐ FORCE THE EXACT FONTS WE NEED
 
@@ -878,7 +860,7 @@ const response = await fetch(
     },
     body: JSON.stringify({
       html: pdfElement.innerHTML,
-      jameelFont: jameelFontBase64,
+      
     }),
   }
 );
