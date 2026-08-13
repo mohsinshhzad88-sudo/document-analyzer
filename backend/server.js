@@ -870,10 +870,10 @@ app.get("/api/test-urdu-pdf", async (req, res) => {
     // Local font inside frontend/public/fonts
     
 
-    const chromium = await import("@sparticuz/chromium");
+   // const chromium = await import("@sparticuz/chromium");
 
-    const puppeteerModule = await import("puppeteer-core");
-   const puppeteer = puppeteerModule.default || puppeteerModule;
+    //const puppeteerModule = await import("puppeteer-core");
+  // const puppeteer = puppeteerModule.default || puppeteerModule;
 
 //browser = await puppeteer.launch({
  // args: chromium.default.args,
@@ -881,6 +881,15 @@ app.get("/api/test-urdu-pdf", async (req, res) => {
  // executablePath: await chromium.default.executablePath(),
   //headless: chromium.default.headless,
 //});
+
+const chromiumModule = await import("@sparticuz/chromium");
+const chromium = chromiumModule.default || chromiumModule;
+
+const puppeteerModule = await import("puppeteer-core");
+const puppeteer = puppeteerModule.default || puppeteerModule;
+
+const executablePath = await chromium.executablePath();
+
 
 if (process.env.VERCEL === "1") {
   console.log("🔥 VERCEL: Using Sparticuz Chromium");
