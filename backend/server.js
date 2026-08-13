@@ -6,7 +6,7 @@ const cors = require("cors");
 const multer = require("multer");
 const Groq = require("groq-sdk");
 const path = require("path");
-const puppeteer = require("puppeteer-core");
+
 const chunkText = require("./utils/chunkText");
 const getprompt = require("./prompts");
 const getComparisonPrompt = require("./prompts/comparisonPrompts");
@@ -872,6 +872,9 @@ app.get("/api/test-urdu-pdf", async (req, res) => {
 
     const chromium = await import("@sparticuz/chromium");
 
+    const puppeteerModule = await import("puppeteer-core");
+   const puppeteer = puppeteerModule.default || puppeteerModule;
+
 //browser = await puppeteer.launch({
  // args: chromium.default.args,
  // defaultViewport: chromium.default.defaultViewport,
@@ -879,14 +882,29 @@ app.get("/api/test-urdu-pdf", async (req, res) => {
   //headless: chromium.default.headless,
 //});
 
-browser = await puppeteer.launch({
-  executablePath: "C:\\Users\\iShop\\.cache\\puppeteer\\chrome\\win64-151.0.7922.77\\chrome-win64\\chrome.exe",
-  headless: true,
-  args: [
-    "--no-sandbox",
-    "--disable-setuid-sandbox"
-  ]
-});
+if (process.env.VERCEL === "1") {
+  console.log("🔥 VERCEL: Using Sparticuz Chromium");
+
+  browser = await puppeteer.launch({
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath,
+    headless: chromium.headless
+  });
+
+} else {
+  console.log("🔥 LOCAL: Using installed Chrome");
+
+  browser = await puppeteer.launch({
+    executablePath:
+      "C:\\Users\\iShop\\.cache\\puppeteer\\chrome\\win64-151.0.7922.77\\chrome-win64\\chrome.exe",
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox"
+    ]
+  });
+}
 
 
     const page = await browser.newPage();
@@ -1044,8 +1062,11 @@ app.post("/api/generate-pdf", async (req, res) => {
     console.log("🔥 HTML received:", html.length);
     console.log("🔥 Jameel font received:", !!jameelFont);
 
-    const chromiumModule = await import("@sparticuz/chromium");
-    const chromium = chromiumModule.default || chromiumModule;
+   const chromiumModule = await import("@sparticuz/chromium");
+   const chromium = chromiumModule.default || chromiumModule;
+
+   const puppeteerModule = await import("puppeteer-core");
+   const puppeteer = puppeteerModule.default || puppeteerModule;
 
     console.log("🔥 Chromium module loaded");
 
