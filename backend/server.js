@@ -1194,7 +1194,7 @@ if (fs.existsSync(fontPath)) {
 
     const fullHtml = `
 <!DOCTYPE html>
-<html>
+<html lang="ur" dir="rtl">
 <head>
 
 <meta charset="UTF-8">
@@ -1212,6 +1212,12 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+body {
+  font-family: "Jameel Noori Nastaleeq", serif;
+  direction: rtl;
+  text-align: right;
 }
 
 </style>
@@ -1235,10 +1241,33 @@ ${html}
     });
 
     await page.evaluate(async () => {
-      await document.fonts.ready;
-    });
+  await document.fonts.ready;
 
-    console.log("🔥 Browser fonts ready");
+  await document.fonts.load(
+    '400 20px "Jameel Noori Nastaleeq"'
+  );
+
+  await new Promise(resolve => setTimeout(resolve, 1000));
+});
+
+console.log("🔥 Browser fonts ready");
+
+console.log(
+  "🔥 SERVER BODY TEXT LENGTH:",
+  await page.evaluate(() => document.body.innerText.length)
+);
+
+console.log(
+  "🔥 SERVER BODY HEIGHT:",
+  await page.evaluate(() => document.body.scrollHeight)
+);
+
+console.log(
+  "🔥 SERVER JAMEEL:",
+  await page.evaluate(() =>
+    document.fonts.check('400 20px "Jameel Noori Nastaleeq"')
+  )
+);
 
     const pdfBuffer = await page.pdf({
       format: "A4",
