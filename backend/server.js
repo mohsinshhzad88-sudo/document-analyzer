@@ -1134,11 +1134,14 @@ app.post("/api/generate-pdf", async (req, res) => {
      * ============================================
      */
 
-    const fontPath = path.join(
-      __dirname,
+     const fontPath = path.join(
+       __dirname,
+       "..",
+      "frontend",
+      "public",
       "fonts",
       "Jameel Noori Nastaleeq Regular.ttf"
-    );
+        );  
 
     let fontCss = "";
 
