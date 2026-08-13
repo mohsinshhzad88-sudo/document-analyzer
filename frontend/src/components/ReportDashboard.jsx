@@ -133,6 +133,8 @@ const getVerdictStyle = (verdict) => {
       
   async function testUrduJsPDF() {
   try {
+   
+
     const response = await fetch(
       "/fonts/Jameel%20Noori%20Nastaleeq%20Regular.ttf"
     );
@@ -840,7 +842,17 @@ console.log(
     pdfElement.offsetHeight
   );
 
+const htmlSize = new Blob([
+  pdfElement.innerHTML
+]).size;
 
+console.log(
+  "🔥 PDF HTML SIZE:",
+  htmlSize,
+  "bytes",
+  (htmlSize / 1024 / 1024).toFixed(2),
+  "MB"
+);
   
 console.log("🔥 Sending report HTML to Puppeteer...");
 
