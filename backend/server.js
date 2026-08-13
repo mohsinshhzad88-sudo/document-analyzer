@@ -915,6 +915,17 @@ if (process.env.VERCEL === "1") {
   });
 }
 
+   const fontPath = path.join(
+  __dirname,
+  "..",
+  "frontend",
+  "public",
+  "fonts",
+  "Jameel Noori Nastaleeq Regular.ttf"
+);
+
+const fontBuffer = fs.readFileSync(fontPath);
+const fontBase64 = fontBuffer.toString("base64");
 
     const page = await browser.newPage();
 
