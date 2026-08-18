@@ -91,7 +91,7 @@ app.post("/api/detect-type", upload.single("document"), async (req, res) => {
 );
 
     const response = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-120b",
        temperature: 0,
        response_format: {
     type: "json_object"
@@ -212,7 +212,7 @@ const result = JSON.parse(aiResult);
 );
 
     const response = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-120b",
        temperature: 0,
        response_format: {
     type: "json_object"
@@ -278,7 +278,7 @@ const result = JSON.parse(aiResult);
     console.log("Detecting document language...");
 
     const response = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-120b",
       temperature: 0,
       messages: [
         {
@@ -380,7 +380,7 @@ console.log(
 
 const response = await groq.chat.completions.create({
 
-  model: "llama-3.1-8b-instant",
+  model: "openai/gpt-oss-120b",
 
   temperature: 0,
 
@@ -502,7 +502,7 @@ while (true) {
 
     response = await groq.chat.completions.create({
 
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-120b",
       
       temperature: 0,
 
@@ -574,7 +574,7 @@ try {
 
   finalResponse = await groq.chat.completions.create({
 
-  model: "llama-3.1-8b-instant",
+  model: "openai/gpt-oss-120b",
 
   temperature: 0,
 
