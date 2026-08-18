@@ -17,7 +17,9 @@ function App() {
   const [documentType, setDocumentType] = useState("Auto Detect");
   const [currentDocumentType, setCurrentDocumentType] = useState("");
   const [documentLanguage, setDocumentLanguage] = useState("Auto Detect");
+  const [outputLanguage, setOutputLanguage] = useState("Same as Input");
   const [currentDocumentLanguage, setCurrentDocumentLanguage] = useState("");
+  const [currentOutputLanguage, setCurrentOutputLanguage] = useState("");
   const [showComparison, setShowComparison] = useState(false);
   
 
@@ -108,9 +110,11 @@ const detectDocumentLanguage = async (selectedFile) => {
     formData.append("document", file);
     formData.append("documentType", documentType);
     formData.append("documentLanguage", documentLanguage);
+    formData.append("outputLanguage", outputLanguage);
 
     console.log("Uploading type:", documentType);
-console.log("Uploading language:", documentLanguage);
+    console.log("Uploading language:", documentLanguage);
+console.log("Uploading output language:", outputLanguage);
 
     try {
       const response = await fetch(
@@ -128,6 +132,7 @@ console.log("Uploading language:", documentLanguage);
             setReport(data.report);
             setCurrentDocumentType(data.documentType);
             setCurrentDocumentLanguage(data.documentLanguage);
+            setCurrentOutputLanguage(data.outputLanguage);
 
       setLoading(false);
 
@@ -158,6 +163,8 @@ console.log("Uploading language:", documentLanguage);
       setDocumentType={setDocumentType}
       documentLanguage={documentLanguage}
       setDocumentLanguage={setDocumentLanguage}
+      outputLanguage={outputLanguage}
+      setOutputLanguage={setOutputLanguage}
       uploadFile={uploadFile}
       Loading={Loading}
     />
@@ -174,6 +181,7 @@ console.log("Uploading language:", documentLanguage);
       <ReportDashboard
         report={report}
         currentDocumentLanguage={currentDocumentLanguage}
+        currentOutputLanguage={currentOutputLanguage}
         documentLanguage={documentLanguage}
       />
     )}

@@ -376,7 +376,7 @@ console.log(
 console.log(
   "Main:",
   mainFile.originalname
-);
+);    
 
 const response = await groq.chat.completions.create({
 
@@ -466,6 +466,15 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
      const data = await pdfParse(dataBuffer);
 
      const extractedText = data.text;
+
+     const outputLanguage =
+  req.body.outputLanguage === "Same as Input"
+    ? req.body.documentLanguage
+    : req.body.outputLanguage;
+
+         console.log("Document Language:", req.body.documentLanguage);
+         console.log("Output Language:", outputLanguage);
+
     const chunks = chunkText(extractedText);
 
 
@@ -477,6 +486,7 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
 
     console.log("Text extracted:");
     console.log(extractedText.substring(0, 300));
+     
 
 
    // 3. Send text to Groq
@@ -592,10 +602,10 @@ try {
         content: `
 You are an expert document auditing assistant.
 
-
 The document language is ${req.body.documentLanguage}.
+The requested output language is ${outputLanguage}.
 
-Return all JSON values in ${req.body.documentLanguage}.
+Return all JSON values in ${outputLanguage}.
 Return ONLY valid JSON.
 
 STRICT JSON RULES:
@@ -762,8 +772,9 @@ If no document quality risks exist, return:
 
 Return only one valid document type.
 The document language is ${req.body.documentLanguage}.
+The output language is ${outputLanguage}.
 
-Generate the report values in that language
+Generate all report values in the output language.
   
 
 Use the analyses below to generate the report.
@@ -833,6 +844,8 @@ res.json({
  documentType: finalReport.documentType,
 
  documentLanguage: req.body.documentLanguage,
+
+ outputLanguage: outputLanguage,
 
  report: finalReport,
 

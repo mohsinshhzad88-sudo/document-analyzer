@@ -7,6 +7,8 @@ function UploadCard({
   setDocumentType,
   documentLanguage,
   setDocumentLanguage,
+  outputLanguage,
+  setOutputLanguage,
   uploadFile,
   Loading,
 }) {
@@ -85,6 +87,31 @@ function UploadCard({
         <option>Hindi</option>
         <option>Other</option>
       </select>
+
+<br />
+
+<label>
+  <strong>Output Language</strong>
+</label>
+
+<br />
+
+<select
+  className="document-type"
+  value={outputLanguage}
+  onChange={(e) => setOutputLanguage(e.target.value)}
+>
+  <option>Same as Input</option>
+  <option>English</option>
+  <option>Urdu</option>
+  <option>Arabic</option>
+  <option>Spanish</option>
+  <option>French</option>
+  <option>German</option>
+  <option>Chinese</option>
+  <option>Hindi</option>
+  <option>Other</option>
+</select>
 
       <br />
       <br />
