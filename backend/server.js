@@ -467,16 +467,222 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
 
      const extractedText = data.text;
 
-     const outputLanguage =
+    const outputLanguage =
   req.body.outputLanguage === "Same as Input"
     ? req.body.documentLanguage
     : req.body.outputLanguage;
 
-         console.log("Document Language:", req.body.documentLanguage);
-         console.log("Output Language:", outputLanguage);
+const analysisMode = req.body.analysisMode || "document";
 
-    const chunks = chunkText(extractedText);
+console.log("=================================");
+console.log("Analysis Mode:", analysisMode);
+console.log("Document Language:", req.body.documentLanguage);
+console.log("Output Language:", outputLanguage);
+console.log("=================================");
 
+
+// ============================================
+// DECISION ANALYSIS MODE
+// ============================================
+
+if (analysisMode === "decision") {
+
+  console.log("🧠 Running Decision Analysis...");
+
+  try {
+
+    const decisionResponse =
+      await groq.chat.completions.create({
+
+        model: "openai/gpt-oss-120b",
+
+        temperature: 0,
+
+        response_format: {
+          type: "json_object"
+        },
+
+        messages: [
+
+          {
+            role: "system",
+
+            content: `
+You are a universal decision-analysis assistant.
+
+Your job is to analyze information provided in a document and help the user make a better decision.
+
+You are DOMAIN-INDEPENDENT.
+
+Do not assume the document is about:
+- jobs
+- universities
+- products
+- suppliers
+- apartments
+- contracts
+- investments
+- or any other specific domain.
+
+First understand what decision the document is presenting.
+
+Identify the available options, decision criteria, evidence, trade-offs, risks, missing information, and provide a reasoned recommendation.
+
+IMPORTANT:
+
+- Base your reasoning ONLY on the information contained in the document.
+- Do not invent facts.
+- Do not invent prices, benefits, risks, features, requirements, or other information.
+- If important information is missing, explicitly identify it.
+- Do not simply choose the option with the largest number.
+- Consider multiple relevant criteria.
+- Explain important trade-offs.
+- Distinguish facts from reasoning.
+- The recommendation must be evidence-based.
+- If there is insufficient information to make a reliable recommendation, say so.
+- Do not force a decision when the evidence is insufficient.
+
+The requested output language is ${outputLanguage}.
+
+Return ALL JSON text values in ${outputLanguage}.
+
+Return ONLY valid JSON.
+
+STRICT JSON RULES:
+
+- Use double quotes only.
+- Escape quotation marks inside strings.
+- Do not use markdown.
+- Do not wrap JSON in code blocks.
+- Arrays must contain simple strings unless explicitly specified.
+- Do not add extra fields.
+
+Return exactly this structure:
+
+{
+  "decision": "",
+  "decisionSummary": "",
+  "options": [],
+  "criteria": [],
+  "evidence": [],
+  "tradeOffs": [],
+  "risks": [],
+  "missingInformation": [],
+  "recommendation": "",
+  "confidence": 0
+}
+
+FIELD RULES:
+
+decision:
+- State the recommended option.
+- If there is not enough evidence, say "Insufficient information".
+
+decisionSummary:
+- Briefly explain what decision is being analyzed.
+- Explain the overall reasoning.
+- Do not invent information.
+
+options:
+- List every meaningful option identified in the document.
+
+criteria:
+- Identify the factors that should influence the decision.
+- Infer criteria only when reasonably supported by the document.
+
+evidence:
+- List important factual evidence from the document.
+- Do not invent evidence.
+
+tradeOffs:
+- Explain meaningful advantages and disadvantages between options.
+
+risks:
+- Identify realistic decision risks supported by the document.
+- Do not invent risks.
+
+missingInformation:
+- Identify information that would materially improve the decision.
+- If nothing important is missing, return an empty array.
+
+recommendation:
+- Give a clear recommendation when the evidence supports one.
+- Explain why.
+- If evidence is insufficient, clearly state what additional information is needed.
+
+confidence:
+- Integer from 0 to 100.
+- Reflect how confident you are in the recommendation based on the available evidence.
+`
+          },
+
+          {
+            role: "user",
+
+            content: `
+Analyze the following document as a decision problem.
+
+DOCUMENT:
+
+${extractedText}
+`
+          }
+
+        ]
+
+      });
+
+    let decisionText =
+      decisionResponse.choices[0].message.content;
+
+    decisionText = decisionText
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    const decisionReport = JSON.parse(decisionText);
+
+    console.log("🧠 Decision analysis completed.");
+
+    return res.json({
+
+      success: true,
+
+      message: "Decision analyzed successfully!",
+
+      analysisMode: "decision",
+
+      documentLanguage: req.body.documentLanguage,
+
+      outputLanguage: outputLanguage,
+
+      report: decisionReport
+
+    });
+
+  } catch (error) {
+
+    console.error("========== DECISION ANALYSIS ERROR ==========");
+    console.error(error);
+
+    return res.status(500).json({
+
+      success: false,
+
+      message: error.message
+
+    });
+
+  }
+
+}
+
+
+// ============================================
+// EXISTING DOCUMENT ANALYSIS
+// ============================================
+
+const chunks = chunkText(extractedText);
 
           console.log("=================================");
           console.log("Chunks created:", chunks.length);

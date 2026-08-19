@@ -10,6 +10,7 @@ function ReportDashboard({
   report,
   currentDocumentLanguage,
   documentLanguage,
+  analysisMode,
 })
  {
       const cardStyle = {
@@ -922,6 +923,246 @@ console.log("🔥 PDF DOWNLOAD COMPLETE 🔥");
   }
 };
 
+  // ==============================
+  // DECISION ANALYSIS REPORT
+  // ==============================
+
+  if (analysisMode === "decision") {
+    const decisionCardStyle = {
+      background: "rgba(255,255,255,0.9)",
+      padding: "25px",
+      borderRadius: "24px",
+      marginTop: "22px",
+      boxShadow: "0 8px 25px rgba(0,0,0,0.08)",
+      border: "1px solid rgba(0,0,0,0.05)",
+      backdropFilter: "blur(10px)",
+    };
+
+    const decisionList = (items, icon = "✓") => {
+      if (!Array.isArray(items) || items.length === 0) {
+        return <p style={{ color: "#64748b" }}>No information available.</p>;
+      }
+
+      return (
+        <ul style={{ paddingLeft: "20px", marginBottom: 0 }}>
+          {items.map((item, index) => (
+            <li
+              key={index}
+              style={{
+                marginBottom: "12px",
+                lineHeight: "1.6",
+                color: "#374151",
+              }}
+            >
+              {icon}{" "}
+              {typeof item === "object"
+                ? item.text ||
+                  item.description ||
+                  item.evidence ||
+                  item.risk ||
+                  item.recommendation ||
+                  JSON.stringify(item)
+                : item}
+            </li>
+          ))}
+        </ul>
+      );
+    };
+
+    return (
+      <div
+        style={{
+          marginTop: "20px",
+          background: "#f8fafc",
+          padding: "30px",
+          borderRadius: "30px",
+          boxShadow: "0 15px 40px rgba(0,0,0,0.08)",
+          textAlign: "left",
+        }}
+      >
+
+        {/* HEADER */}
+        <div
+          style={{
+            ...cardStyle,
+            textAlign: "center",
+            background: "linear-gradient(135deg,#667eea,#764ba2)",
+            color: "white",
+          }}
+        >
+          <h2>🧠 Decision Analysis</h2>
+
+          <p>
+            🌍{" "}
+            {currentDocumentLanguage ||
+              documentLanguage ||
+              "Not specified"}
+          </p>
+
+          <div
+            style={{
+              display: "inline-block",
+              marginTop: "8px",
+              padding: "8px 18px",
+              borderRadius: "20px",
+              background: "rgba(255,255,255,0.18)",
+              fontWeight: "700",
+            }}
+          >
+            🎯 {report.confidence || 0}% Confidence
+          </div>
+
+          <br />
+
+          <button
+            style={{
+              marginTop: "18px",
+              padding: "11px 20px",
+              borderRadius: "10px",
+              border: "1px solid #111111",
+              background: "#111111",
+              color: "#ffffff",
+              fontWeight: "600",
+              cursor: "pointer",
+              fontSize: "14px",
+            }}
+            onClick={downloadPDF}
+          >
+            📄 Download PDF
+          </button>
+        </div>
+
+        {/* DECISION */}
+        <div style={decisionCardStyle}>
+          <h3>🏆 Decision</h3>
+
+          <div
+            style={{
+              marginTop: "15px",
+              padding: "20px",
+              borderRadius: "16px",
+              background: "#eef2ff",
+              border: "1px solid #c7d2fe",
+            }}
+          >
+            <h2
+              style={{
+                marginTop: 0,
+                color: "#3730a3",
+              }}
+            >
+              {report.decision || "No decision available"}
+            </h2>
+
+            <p
+              style={{
+                lineHeight: "1.7",
+                color: "#374151",
+              }}
+            >
+              {report.decisionReason ||
+                report.reasoning ||
+                "No decision reasoning available."}
+            </p>
+          </div>
+        </div>
+
+        {/* OPTIONS */}
+        <div style={decisionCardStyle}>
+          <h3>🔀 Options</h3>
+          {decisionList(report.options)}
+        </div>
+
+        {/* CRITERIA */}
+        <div style={decisionCardStyle}>
+          <h3>🎯 Criteria</h3>
+          {decisionList(report.criteria)}
+        </div>
+
+        {/* EVIDENCE */}
+        <div style={decisionCardStyle}>
+          <h3>🔎 Evidence</h3>
+          {decisionList(report.evidence, "✓")}
+        </div>
+
+        {/* TRADE-OFFS */}
+        <div style={decisionCardStyle}>
+          <h3>⚖️ Trade-offs</h3>
+          {decisionList(report.tradeoffs || report.tradeOffs, "•")}
+        </div>
+
+        {/* RISKS */}
+        <div style={decisionCardStyle}>
+          <h3>⚠️ Risks</h3>
+          {decisionList(report.risks, "⚠️")}
+        </div>
+
+        {/* MISSING INFORMATION */}
+        <div style={decisionCardStyle}>
+          <h3>❓ Missing Information</h3>
+          {decisionList(
+            report.missingInformation ||
+              report.missing_information,
+            "•"
+          )}
+        </div>
+
+        {/* RECOMMENDATION */}
+        <div style={decisionCardStyle}>
+          <h3>💡 Recommendation</h3>
+
+          <p
+            style={{
+              lineHeight: "1.7",
+              color: "#374151",
+              fontSize: "16px",
+            }}
+          >
+            {report.recommendation ||
+              "No recommendation available."}
+          </p>
+        </div>
+
+        {/* CONFIDENCE */}
+        <div style={decisionCardStyle}>
+          <h3>🎯 Confidence</h3>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "20px",
+            }}
+          >
+            <div
+              style={{
+                flex: 1,
+                height: "14px",
+                background: "#e5e7eb",
+                borderRadius: "20px",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${report.confidence || 0}%`,
+                  height: "100%",
+                  background: "#6366f1",
+                  borderRadius: "20px",
+                  transition: "0.5s",
+                }}
+              />
+            </div>
+
+            <strong>
+              {report.confidence || 0}%
+            </strong>
+          </div>
+        </div>
+
+      </div>
+    );
+  }
 
   return (
     <div

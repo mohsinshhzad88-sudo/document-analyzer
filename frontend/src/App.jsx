@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import SkeletonReport from "./components/SkeletonReport";
 import UploadCard from "./components/UploadCard";
 import ReportDashboard from "./components/ReportDashboard";
+import DecisionReport from "./components/DecisionReport";
 import Comparison from "./pages/Comparison";
 
 function App() {
@@ -21,6 +22,8 @@ function App() {
   const [currentDocumentLanguage, setCurrentDocumentLanguage] = useState("");
   const [currentOutputLanguage, setCurrentOutputLanguage] = useState("");
   const [showComparison, setShowComparison] = useState(false);
+  const [analysisMode, setAnalysisMode] = useState("document");
+  const [comparisonMode, setComparisonMode] = useState("document");
   
 
 
@@ -111,10 +114,12 @@ const detectDocumentLanguage = async (selectedFile) => {
     formData.append("documentType", documentType);
     formData.append("documentLanguage", documentLanguage);
     formData.append("outputLanguage", outputLanguage);
+    formData.append("analysisMode", analysisMode);
 
     console.log("Uploading type:", documentType);
     console.log("Uploading language:", documentLanguage);
-console.log("Uploading output language:", outputLanguage);
+    console.log("Uploading output language:", outputLanguage);
+    console.log("Uploading analysis mode:", analysisMode);
 
     try {
       const response = await fetch(
@@ -150,6 +155,10 @@ console.log("Uploading output language:", outputLanguage);
   <Navbar
     showComparison={showComparison}
     setShowComparison={setShowComparison}
+    analysisMode={analysisMode}
+    setAnalysisMode={setAnalysisMode}
+    comparisonMode={comparisonMode}
+    setComparisonMode={setComparisonMode}
   />
   
 {!showComparison && (
@@ -178,13 +187,22 @@ console.log("Uploading output language:", outputLanguage);
     {Loading && <SkeletonReport />}
 
     {!Loading && report && (
-      <ReportDashboard
-        report={report}
-        currentDocumentLanguage={currentDocumentLanguage}
-        currentOutputLanguage={currentOutputLanguage}
-        documentLanguage={documentLanguage}
-      />
-    )}
+  analysisMode === "decision" ? (
+    <DecisionReport
+      report={report}
+      currentDocumentLanguage={currentDocumentLanguage}
+      currentOutputLanguage={currentOutputLanguage}
+    />
+  ) : (
+    <ReportDashboard
+      report={report}
+      currentDocumentLanguage={currentDocumentLanguage}
+      currentOutputLanguage={currentOutputLanguage}
+      documentLanguage={documentLanguage}
+      analysisMode={analysisMode}
+    />
+  )
+)}
   </div>
 )}
 
