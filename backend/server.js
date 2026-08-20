@@ -10,6 +10,8 @@ const path = require("path");
 const chunkText = require("./utils/chunkText");
 const getprompt = require("./prompts");
 const getComparisonPrompt = require("./prompts/comparisonPrompts");
+const getDecisionComparisonPrompt = require("./prompts/decisionComparisonPrompts");
+
 const referenceClassifierPrompt = require("./prompts/referenceClassifierPrompt");
 
 const app = express();
@@ -442,6 +444,133 @@ res.json({
         message: error.message
     });
 }
+
+});
+
+  
+app.post("/api/decision-compare", upload.fields([
+  { name: "documentA", maxCount: 1 },
+  { name: "documentB", maxCount: 1 }
+]), async (req, res) => {
+
+  try {
+
+    const documentAFile = req.files.documentA[0];
+    const documentBFile = req.files.documentB[0];
+
+    const documentAData = await pdfParse(
+      documentAFile.buffer
+    );
+
+    const documentBData = await pdfParse(
+      documentBFile.buffer
+    );
+
+    const documentAText = documentAData.text;
+    const documentBText = documentBData.text;
+
+    const decisionComparisonPrompt =
+      getDecisionComparisonPrompt();
+
+    console.log(
+      "========== DECISION COMPARISON =========="
+    );
+
+    console.log(
+      "Document A:",
+      documentAFile.originalname
+    );
+
+    console.log(
+      "Document B:",
+      documentBFile.originalname
+    );
+
+    console.log(
+      "========== DOCUMENT A TEXT =========="
+    );
+
+    console.log(
+      documentAText.substring(0, 500)
+    );
+
+    console.log(
+      "========== DOCUMENT B TEXT =========="
+    );
+
+    console.log(
+      documentBText.substring(0, 500)
+    );
+
+    const response =
+      await groq.chat.completions.create({
+
+        model: "openai/gpt-oss-120b",
+
+        temperature: 0,
+
+        response_format: {
+          type: "json_object"
+        },
+
+        messages: [
+
+          {
+            role: "system",
+            content: decisionComparisonPrompt
+          },
+
+          {
+            role: "user",
+            content: `
+
+DOCUMENT A:
+
+${documentAText}
+
+
+DOCUMENT B:
+
+${documentBText}
+
+`
+          }
+
+        ]
+
+      });
+
+    const result = JSON.parse(
+      response.choices[0].message.content
+    );
+
+    console.log(
+      "========== DECISION COMPARISON COMPLETE =========="
+    );
+
+    res.json({
+      success: true,
+      result
+    });
+
+  } catch (error) {
+
+    console.error(
+      "========== DECISION COMPARISON ERROR =========="
+    );
+
+    console.error(error);
+
+    if (error.response) {
+      console.error(error.response.data);
+    }
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
 
 });
 

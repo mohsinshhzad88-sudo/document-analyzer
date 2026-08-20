@@ -7,6 +7,7 @@ import UploadCard from "./components/UploadCard";
 import ReportDashboard from "./components/ReportDashboard";
 import DecisionReport from "./components/DecisionReport";
 import Comparison from "./pages/Comparison";
+import DecisionComparison from "./pages/DecisionComparison";
 
 function App() {
   const [file, setFile] = useState(null);
@@ -207,7 +208,9 @@ const detectDocumentLanguage = async (selectedFile) => {
 )}
 
 {showComparison && (
-  <Comparison />
+  comparisonMode === "decision"
+    ? <DecisionComparison />
+    : <Comparison />
 )}
 
     </div>

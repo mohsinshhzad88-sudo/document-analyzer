@@ -1,0 +1,146 @@
+/* =========================================================
+   DECISION COMPARISON
+   ========================================================= */
+
+.decision-comparison {
+  width: 100%;
+}
+
+/* =========================================================
+   UPLOAD SCREEN
+   ========================================================= */
+
+.upload-screen {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 60px 30px;
+  text-align: center;
+}
+
+.upload-screen h1 {
+  margin-bottom: 12px;
+  font-size: 36px;
+}
+
+.upload-screen > p {
+  color: #94a3b8;
+  margin-bottom: 40px;
+  font-size: 16px;
+}
+
+.comparison-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 25px;
+  margin-bottom: 35px;
+}
+
+.upload-box {
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+}
+
+.upload-box h2 {
+  margin-bottom: 10px;
+}
+
+.upload-box p {
+  color: #94a3b8;
+}
+
+.file-button,
+.evaluate-btn,
+.button-group button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.file-button {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.file-button:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.ready-text {
+  font-weight: 600;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.button-group button {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.evaluate-btn {
+  min-width: 220px;
+  background: white;
+  color: #111827;
+  font-size: 15px;
+}
+
+.evaluate-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.evaluate-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   LOADING SCREEN
+   ========================================================= */
+
+.loading-screen {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+}
+
+.loading-screen h2 {
+  margin-bottom: 10px;
+}
+
+.loading-screen p {
+  color: #94a3b8;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .comparison-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .upload-screen {
+    padding: 40px 20px;
+  }
+
+  .upload-screen h1 {
+    font-size: 28px;
+  }
+}
