@@ -483,3 +483,153 @@
     font-size: 40px;
   }
 }
+/* =========================================================
+   EVIDENCE TRAJECTORY
+   ========================================================= */
+
+.evidence-trajectory {
+  margin: 42px 0;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.evidence-trajectory-header {
+  margin-bottom: 20px;
+}
+
+.visual-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #6366f1;
+}
+
+.evidence-trajectory-header h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.evidence-trajectory-header p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #6b7280;
+}
+
+.evidence-chart-container {
+  width: 100%;
+  height: 330px;
+}
+
+.evidence-chart-legend {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 28px;
+  margin-top: 4px;
+}
+
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #4b5563;
+}
+
+.legend-line {
+  display: inline-block;
+  width: 24px;
+  height: 2px;
+}
+
+.document-a-line {
+  background: #111827;
+}
+
+.document-b-line {
+  height: 0;
+  border-top: 2px dashed #64748b;
+}
+
+.evidence-chart-note {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 10px;
+  line-height: 1.6;
+  color: #6b7280;
+}
+
+.evidence-chart-note strong {
+  color: #374151;
+  white-space: nowrap;
+}
+
+.evidence-tooltip {
+  min-width: 180px;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.tooltip-title {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 11px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.tooltip-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  margin-top: 8px;
+}
+
+.tooltip-document {
+  font-size: 10px;
+  color: #6b7280;
+}
+
+.tooltip-row strong {
+  font-size: 11px;
+  color: #111827;
+}
+
+.tooltip-row small {
+  grid-column: 1 / -1;
+  font-size: 9px;
+  color: #9ca3af;
+}
+
+@media (max-width: 700px) {
+
+  .evidence-trajectory {
+    padding: 18px;
+  }
+
+  .evidence-chart-container {
+    height: 280px;
+  }
+
+  .evidence-chart-legend {
+    gap: 18px;
+  }
+
+  .evidence-chart-note {
+    flex-direction: column;
+  }
+}
