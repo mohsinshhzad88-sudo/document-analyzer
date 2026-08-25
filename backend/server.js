@@ -17,6 +17,7 @@ const classifyTaxDocuments = require("./tax/taxClassifier");
 const extractTaxDocument = require("./tax/taxExtractor");
 const processTaxDocuments = require("./tax/processTaxDocuments");
 const analyzeTaxDocuments = require("./tax/taxAnalyzer");
+const taxAssessmentEngine = require("./tax/taxAssessmentEngine");
 
 const app = express();
 
@@ -401,16 +402,33 @@ app.post(
         req.files.length
       );
 
-      const documents =
+            const documents =
         await processTaxDocuments(
           req.files,
           groq
         );
 
+      console.log(
+        "🧮 Building tax assessment..."
+      );
+
+      const assessment =
+        taxAssessmentEngine(documents);
+
+      console.log(
+        "✅ Tax assessment created"
+      );
+
+      console.log(
+        "🧮 TAX ASSESSMENT:",
+        JSON.stringify(assessment, null, 2)
+      );
+
       res.json({
         success: true,
         documentCount: documents.length,
-        documents
+        documents,
+        assessment
       });
 
     } catch (error) {
@@ -432,8 +450,61 @@ app.post(
 
 
 app.post(
-  "/api/tax/analyze",
+  "/api/tax/assess",
   express.json(),
+  async (req, res) => {
+
+    try {
+
+      const documents = req.body.documents;
+
+      if (!documents || documents.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "No processed documents available"
+        });
+      }
+
+      console.log(
+        "📊 Building tax assessment for:",
+        documents.length,
+        "document(s)"
+      );
+
+      const assessment =
+        taxAssessmentEngine(documents);
+
+      console.log(
+        "✅ Tax assessment completed"
+      );
+
+      res.json({
+        success: true,
+        documentCount: documents.length,
+        assessment
+      });
+
+    } catch (error) {
+
+      console.error(
+        "========== TAX ASSESSMENT ERROR =========="
+      );
+
+      console.error(error);
+
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+
+    }
+
+  }
+);
+
+app.post(
+  "/api/tax/analyze",
+  express.json({ limit: "20mb" }),
   async (req, res) => {
 
     try {
@@ -453,16 +524,82 @@ app.post(
         "document(s)"
       );
 
+      /*
+       * ============================================
+       * STEP 1 — DETERMINISTIC TAX ASSESSMENT
+       * ============================================
+       *
+       * Numerical calculations and consistency checks
+       * are handled by our own assessment engine.
+       */
+
+      console.log(
+        "🧮 Building deterministic tax assessment..."
+      );
+
+      const assessment =
+        taxAssessmentEngine(documents);
+
+      console.log(
+        "✅ Deterministic tax assessment completed"
+      );
+
+      console.log(
+        "🧮 ASSESSMENT:",
+        JSON.stringify(
+          assessment,
+          null,
+          2
+        )
+      );
+
+
+      /*
+       * ============================================
+       * STEP 2 — AI TAX ANALYSIS
+       * ============================================
+       *
+       * The AI explains the assessment.
+       *
+       * It should NOT override or invent numerical
+       * calculations.
+       */
+
+      console.log(
+        "🧠 Generating AI tax analysis..."
+      );
+
+      
+
       const analysis =
         await analyzeTaxDocuments(
           documents,
-          groq
+          groq,
+          assessment
         );
 
+      console.log(
+        "✅ AI tax analysis completed"
+      );
+
+
+      /*
+       * ============================================
+       * RESPONSE
+       * ============================================
+       */
+
       res.json({
+
         success: true,
-        documentCount: documents.length,
+
+        documentCount:
+          documents.length,
+
+        assessment,
+
         analysis
+
       });
 
     } catch (error) {
@@ -474,15 +611,18 @@ app.post(
       console.error(error);
 
       res.status(500).json({
+
         success: false,
-        message: error.message
+
+        message:
+          error.message
+
       });
 
     }
 
   }
 );
-
 
 
 app.post(

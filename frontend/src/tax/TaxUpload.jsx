@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import TaxAssessmentReport from "./TaxAssessmentReport";
 
 function TaxUpload() {
 
@@ -6,6 +7,7 @@ function TaxUpload() {
   const [processing, setProcessing] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState(null);
+  const [assessment, setAssessment] = useState(null);
   const [processed, setProcessed] = useState(false);
   const [processedDocuments, setProcessedDocuments] = useState([]);
 
@@ -13,7 +15,10 @@ function TaxUpload() {
 
     const newFiles = Array.from(selectedFiles);
 
-     setProcessedDocuments([]);
+    setProcessedDocuments([]);
+    setAnalysis(null);
+    setAssessment(null);
+    setProcessed(false);
 
     setFiles((currentFiles) => {
 
@@ -26,20 +31,17 @@ function TaxUpload() {
 
     });
 
-    // Clear previous analysis when new documents are added
-    setAnalysis(null);
-    setProcessed(false);
-
   };
+
 
   const handleFileChange = (event) => {
 
     handleFiles(event.target.files);
 
-    // Allow selecting the same file again
     event.target.value = "";
 
   };
+
 
   const removeFile = (indexToRemove) => {
 
@@ -48,22 +50,20 @@ function TaxUpload() {
         (_, index) => index !== indexToRemove
       )
     );
-     
+
     setProcessedDocuments([]);
     setAnalysis(null);
-    setProcessed(false)
+    setAssessment(null);
+    setProcessed(false);
 
   };
 
 
   /*
+   * ============================================
    * STEP 1
-   *
-   * Process uploaded documents.
-   *
-   * This performs:
-   * - Classification
-   * - Information extraction
+   * PROCESS TAX DOCUMENTS
+   * ============================================
    */
 
   const processDocuments = async () => {
@@ -74,6 +74,7 @@ function TaxUpload() {
 
     setProcessing(true);
     setAnalysis(null);
+    setAssessment(null);
 
     const formData = new FormData();
 
@@ -113,7 +114,6 @@ function TaxUpload() {
       }
 
       setFiles((currentFiles) =>
-
         currentFiles.map((file) => {
 
           const processedDocument =
@@ -127,7 +127,6 @@ function TaxUpload() {
           }
 
           return {
-
             ...file,
 
             documentType:
@@ -138,17 +137,25 @@ function TaxUpload() {
 
             extractedData:
               processedDocument.data
-
           };
 
         })
-
       );
 
-       // STEP 1 completed successfully
-       setProcessedDocuments(result.documents);
-       setProcessed(true);
+      setProcessedDocuments(
+        result.documents || []
+      );
 
+      /*
+       * /api/tax/process already returns
+       * the deterministic assessment.
+       */
+
+      if (result.assessment) {
+        setAssessment(result.assessment);
+      }
+
+      setProcessed(true);
 
     } catch (error) {
 
@@ -172,40 +179,41 @@ function TaxUpload() {
 
 
   /*
+   * ============================================
    * STEP 2
-   *
-   * Perform cross-document tax analysis.
+   * ANALYZE TAX DOCUMENTS
+   * ============================================
    */
 
   const analyzeDocuments = async () => {
 
-    if (files.length === 0) {
+    if (processedDocuments.length === 0) {
       return;
     }
 
     setAnalyzing(true);
 
-   
-
     try {
 
       console.log(
         "🧠 Sending documents for tax analysis:",
-        files.length
+        processedDocuments.length
       );
 
       const response = await fetch(
-  "http://localhost:5000/api/tax/analyze",
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      documents:processedDocuments
-    })
-  }
-);
+        "http://localhost:5000/api/tax/analyze",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+            documents: processedDocuments
+          })
+        }
+      );
 
       const result = await response.json();
 
@@ -223,49 +231,20 @@ function TaxUpload() {
 
       }
 
-      setAnalysis(result.analysis);
-
       /*
-       * Also update the displayed documents
-       * with the latest processed information.
+       * Keep both objects:
+       *
+       * assessment = deterministic facts/checks
+       * analysis   = AI explanation
        */
 
-      if (result.documents) {
+      setAssessment(
+        result.assessment || null
+      );
 
-        setFiles((currentFiles) =>
-
-          currentFiles.map((file) => {
-
-            const processedDocument =
-              result.documents.find(
-                (document) =>
-                  document.fileName === file.name
-              );
-
-            if (!processedDocument) {
-              return file;
-            }
-
-            return {
-
-              ...file,
-
-              documentType:
-                processedDocument.documentType,
-
-              confidence:
-                processedDocument.confidence,
-
-              extractedData:
-                processedDocument.data
-
-            };
-
-          })
-
-        );
-
-      }
+      setAnalysis(
+        result.analysis || null
+      );
 
     } catch (error) {
 
@@ -290,145 +269,233 @@ function TaxUpload() {
 
   return (
 
-    <div className="tax-upload-container">
+    <div className="tax-upload-page">
 
-      <div className="tax-upload-box">
+      <div className="tax-upload-container">
 
-        <h2>
-          🧾 Tax Document Analyzer
-        </h2>
+        {/* HEADER */}
 
-        <p>
-          Upload up to 10 tax-related documents at once.
-        </p>
+        <div className="tax-upload-header">
 
+          <div>
 
-        <label className="tax-upload-button">
+            <span className="tax-upload-eyebrow">
+              🧾 TAX ASSISTANT
+            </span>
 
-          📁 Browse Files
+            <h1>
+              Tax Document Analyzer
+            </h1>
 
-          <input
-            type="file"
-            multiple
-            accept=".pdf"
-            onChange={handleFileChange}
-            hidden
-          />
-
-        </label>
-
-
-        <p className="tax-file-limit">
-          {files.length} / 10 documents
-        </p>
-
-
-        {files.length > 0 && (
-
-          <div className="tax-file-list">
-
-            {files.map((file, index) => (
-
-              <div
-                className="tax-file-item"
-                key={`${file.name}-${index}`}
-              >
-
-                <div className="tax-file-info">
-
-                  <strong>
-                    {file.name}
-                  </strong>
-
-
-                  {file.documentType ? (
-
-                    <div className="tax-detected-type">
-
-                      📄 {file.documentType}
-
-                      {" "}
-
-                      ({file.confidence}% confidence)
-
-                    </div>
-
-                  ) : (
-
-                    <div className="tax-detected-type">
-
-                      🧠 Waiting for analysis...
-
-                    </div>
-
-                  )}
-
-
-                  {file.extractedData && (
-
-                    <div className="tax-extracted-data">
-
-                      <h4>
-                        Extracted Information
-                      </h4>
-
-
-                      {Object.entries(
-                        file.extractedData
-                      ).map(
-                        ([key, value]) => (
-
-                          <div
-                            className="tax-data-row"
-                            key={key}
-                          >
-
-                            <span>
-                              {formatLabel(key)}
-                            </span>
-
-                            <strong>
-                              {formatValue(value)}
-                            </strong>
-
-                          </div>
-
-                        )
-                      )}
-
-                    </div>
-
-                  )}
-
-                </div>
-
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    removeFile(index)
-                  }
-                  disabled={processing || analyzing}
-                >
-                  ✕
-                </button>
-
-              </div>
-
-            ))}
+            <p>
+              Upload up to 10 tax-related documents
+              and analyze the available financial evidence.
+            </p>
 
           </div>
 
+          <div className="tax-upload-count">
+
+            <strong>
+              {files.length}
+            </strong>
+
+            <span>
+              / 10 documents
+            </span>
+
+          </div>
+
+        </div>
+
+
+        {/* UPLOAD */}
+
+        <div className="tax-upload-card">
+
+          <div>
+
+            <h2>
+              Upload tax documents
+            </h2>
+
+            <p>
+              Salary records, bank statements,
+              withholding records, tax returns,
+              business records, or property records.
+            </p>
+
+          </div>
+
+
+          <label className="tax-upload-button">
+
+            📁 Browse Files
+
+            <input
+              type="file"
+              multiple
+              accept=".pdf"
+              onChange={handleFileChange}
+              hidden
+            />
+
+          </label>
+
+        </div>
+
+
+        {/* DOCUMENT LIST */}
+
+        {files.length > 0 && (
+
+          <section className="tax-files-section">
+
+            <div className="tax-files-heading">
+
+              <div>
+
+                <span>
+                  DOCUMENTS
+                </span>
+
+                <h2>
+                  Uploaded Files
+                </h2>
+
+              </div>
+
+              <div className="tax-count-pill">
+                {files.length}
+              </div>
+
+            </div>
+
+
+            <div className="tax-file-list">
+
+              {files.map((file, index) => (
+
+                <div
+                  className="tax-file-item"
+                  key={`${file.name}-${index}`}
+                >
+
+                  <div className="tax-file-icon">
+                    📄
+                  </div>
+
+
+                  <div className="tax-file-content">
+
+                    <strong>
+                      {file.name}
+                    </strong>
+
+
+                    {file.documentType ? (
+
+                      <div className="tax-file-meta">
+
+                        <span className="tax-type-pill">
+                          {file.documentType}
+                        </span>
+
+                        <span>
+                          {file.confidence}%
+                          confidence
+                        </span>
+
+                      </div>
+
+                    ) : (
+
+                      <span className="tax-waiting">
+                        Waiting for processing...
+                      </span>
+
+                    )}
+
+
+                    {file.extractedData && (
+
+                      <details className="tax-extracted">
+
+                        <summary>
+                          View extracted information
+                        </summary>
+
+                        <div className="tax-extracted-grid">
+
+                          {Object.entries(
+                            file.extractedData
+                          ).map(
+                            ([key, value]) => (
+
+                              <div
+                                key={key}
+                                className="tax-extracted-item"
+                              >
+
+                                <span>
+                                  {formatLabel(key)}
+                                </span>
+
+                                <strong>
+                                  {formatValue(value)}
+                                </strong>
+
+                              </div>
+
+                            )
+                          )}
+
+                        </div>
+
+                      </details>
+
+                    )}
+
+                  </div>
+
+
+                  <button
+                    type="button"
+                    className="tax-remove-button"
+                    onClick={() =>
+                      removeFile(index)
+                    }
+                    disabled={
+                      processing ||
+                      analyzing
+                    }
+                  >
+                    ×
+                  </button>
+
+                </div>
+
+              ))}
+
+            </div>
+
+          </section>
+
         )}
 
+
+        {/* STEP 1 BUTTON */}
 
         {files.length > 0 && !processed && (
 
           <button
             type="button"
-            className="tax-process-button"
+            className="tax-action-button"
             onClick={processDocuments}
-            disabled={processing || analyzing}
+            disabled={
+              processing ||
+              analyzing
+            }
           >
 
             {processing
@@ -440,13 +507,18 @@ function TaxUpload() {
         )}
 
 
-        {files.length > 0 && processed && (
+        {/* STEP 2 BUTTON */}
+
+        {processed && !analysis && (
 
           <button
             type="button"
-            className="tax-process-button"
+            className="tax-action-button"
             onClick={analyzeDocuments}
-            disabled={processing || analyzing}
+            disabled={
+              processing ||
+              analyzing
+            }
           >
 
             {analyzing
@@ -458,145 +530,15 @@ function TaxUpload() {
         )}
 
 
+        {/* PROFESSIONAL REPORT */}
+
         {analysis && (
 
-          <div className="tax-analysis">
-
-            <h3>
-              🧠 Tax Analysis
-            </h3>
-
-
-            <div className="tax-analysis-section">
-
-              <h4>
-                Summary
-              </h4>
-
-              <p>
-                {analysis.summary}
-              </p>
-
-            </div>
-
-
-            <div className="tax-analysis-section">
-
-              <h4>
-                📊 Financial Overview
-              </h4>
-
-              {renderList(
-                analysis.financialOverview
-              )}
-
-            </div>
-
-
-            <div className="tax-analysis-section">
-
-              <h4>
-                🧾 Tax Overview
-              </h4>
-
-              {renderList(
-                analysis.taxOverview
-              )}
-
-            </div>
-
-
-            <div className="tax-analysis-section">
-
-              <h4>
-                💰 Income Sources
-              </h4>
-
-              {renderList(
-                analysis.incomeSources
-              )}
-
-            </div>
-
-
-            <div className="tax-analysis-section">
-
-              <h4>
-                🔍 Consistency Checks
-              </h4>
-
-              {renderList(
-                analysis.consistencyChecks
-              )}
-
-            </div>
-
-
-            <div className="tax-analysis-section">
-
-              <h4>
-                ⚠️ Missing Information
-              </h4>
-
-              {renderList(
-                analysis.missingInformation
-              )}
-
-            </div>
-
-
-            <div className="tax-analysis-section">
-
-              <h4>
-                🚨 Potential Issues
-              </h4>
-
-              {renderList(
-                analysis.potentialIssues
-              )}
-
-            </div>
-
-
-            <div className="tax-analysis-section">
-
-              <h4>
-                📄 Document Summary
-              </h4>
-
-              {renderList(
-                analysis.documentSummary
-              )}
-
-            </div>
-
-
-            <div className="tax-analysis-section">
-
-              <h4>
-                📋 Overall Assessment
-              </h4>
-
-              <p>
-                {analysis.overallAssessment}
-              </p>
-
-            </div>
-
-
-            <div className="tax-analysis-confidence">
-
-              <strong>
-                Analysis Confidence:
-              </strong>
-
-              {" "}
-
-              {analysis.confidence}%
-
-            </div>
-
-          </div>
+          <TaxAssessmentReport
+            assessment={assessment}
+            analysis={analysis}
+            files={files}
+          />
 
         )}
 
@@ -610,7 +552,9 @@ function TaxUpload() {
 
 
 /*
- * Convert camelCase into readable text.
+ * ============================================
+ * FORMAT HELPERS
+ * ============================================
  */
 
 function formatLabel(key) {
@@ -624,10 +568,6 @@ function formatLabel(key) {
 }
 
 
-/*
- * Display null values safely.
- */
-
 function formatValue(value) {
 
   if (
@@ -635,11 +575,8 @@ function formatValue(value) {
     value === undefined ||
     value === ""
   ) {
-
     return "Not found";
-
   }
-
 
   if (Array.isArray(value)) {
 
@@ -647,59 +584,23 @@ function formatValue(value) {
       return "None";
     }
 
-    return value.join(", ");
+    return value
+      .map((item) =>
+        typeof item === "object"
+          ? JSON.stringify(item)
+          : String(item)
+      )
+      .join(", ");
 
   }
-
 
   if (typeof value === "object") {
-
     return JSON.stringify(value);
-
   }
-
 
   return String(value);
 
 }
 
 
-/*
- * Render analysis arrays safely.
- */
-
-function renderList(items) {
-
-  if (!Array.isArray(items) || items.length === 0) {
-
-    return (
-      <p>
-        None reported.
-      </p>
-    );
-
-  }
-
-  return (
-
-    <ul>
-
-      {items.map(
-        (item, index) => (
-
-          <li key={index}>
-            {item}
-          </li>
-
-        )
-      )}
-
-    </ul>
-
-  );
-
-}
-
-
 export default TaxUpload;
-
