@@ -7,12 +7,16 @@ function Navbar({
   setAnalysisMode,
   comparisonMode,
   setComparisonMode,
+  appMode,
+  setAppMode,
+
 }) {
   const [showAnalyzeMenu, setShowAnalyzeMenu] = useState(false);
   const [showCompareMenu, setShowCompareMenu] = useState(false);  
 
   const selectAnalyzeMode = (mode) => {
     setAnalysisMode(mode);
+    setAppMode("analysis");
     setShowComparison(false);
     setShowAnalyzeMenu(false);
     setShowCompareMenu(false);
@@ -20,6 +24,7 @@ function Navbar({
 
   const selectComparisonMode = (mode) => {
     setComparisonMode(mode);
+    setAppMode("analysis");
     setShowComparison(true);
     setShowCompareMenu(false);
     setShowAnalyzeMenu(false);
@@ -93,8 +98,18 @@ function Navbar({
               </button>
             </div>
           )}
-        </div>
-
+          </div>
+          <button
+               className={appMode === "tax" ? "active" : ""}
+               onClick={() => {
+                setAppMode("tax");
+                setShowComparison(false);
+                setShowAnalyzeMenu(false);
+                setShowCompareMenu(false);
+                    }}
+                   >
+             🧾 Tax Assistant
+               </button>
       </div>
     </nav>
   );
