@@ -12,6 +12,13 @@ function TaxUpload() {
   const [processed, setProcessed] = useState(false);
   const [processedDocuments, setProcessedDocuments] = useState([]);
 
+
+  const API_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : "https://document-analyzer-two.vercel.app";
+
+
   const handleFiles = (selectedFiles) => {
 
     const newFiles = Array.from(selectedFiles);
@@ -91,12 +98,12 @@ function TaxUpload() {
       );
 
       const response = await fetch(
-        "http://localhost:5000/api/tax/process",
-        {
-          method: "POST",
-          body: formData
-        }
-      );
+  `${API_URL}/api/tax/process`,
+  {
+    method: "POST",
+    body: formData
+  }
+);
 
       const result = await response.json();
 
@@ -202,19 +209,17 @@ function TaxUpload() {
       );
 
       const response = await fetch(
-        "http://localhost:5000/api/tax/analyze",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json"
-          },
-
-          body: JSON.stringify({
-            documents: processedDocuments
-          })
-        }
-      );
+  `${API_URL}/api/tax/analyze`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      documents: processedDocuments
+    })
+  }
+);
 
       const result = await response.json();
 
