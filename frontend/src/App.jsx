@@ -8,6 +8,7 @@ import ReportDashboard from "./components/ReportDashboard";
 import DecisionReport from "./components/DecisionReport";
 import Comparison from "./pages/Comparison";
 import DecisionComparison from "./pages/DecisionComparison";
+import TaxUpload from "./tax/TaxUpload";
 
 function App() {
   const [file, setFile] = useState(null);
@@ -25,6 +26,7 @@ function App() {
   const [showComparison, setShowComparison] = useState(false);
   const [analysisMode, setAnalysisMode] = useState("document");
   const [comparisonMode, setComparisonMode] = useState("document");
+  const [appMode, setAppMode] = useState("analysis");
   
 
 
@@ -152,69 +154,79 @@ const detectDocumentLanguage = async (selectedFile) => {
   };
 
   return (
-   <div>
-  <Navbar
-    showComparison={showComparison}
-    setShowComparison={setShowComparison}
-    analysisMode={analysisMode}
-    setAnalysisMode={setAnalysisMode}
-    comparisonMode={comparisonMode}
-    setComparisonMode={setComparisonMode}
-  />
-  
-{!showComparison && (
-   <div className="container">
-    <UploadCard
-      file={file}
-      setFile={setFile}
-      detectDocumentType={detectDocumentType}
-      detectDocumentLanguage={detectDocumentLanguage}
-      documentType={documentType}
-      setDocumentType={setDocumentType}
-      documentLanguage={documentLanguage}
-      setDocumentLanguage={setDocumentLanguage}
-      outputLanguage={outputLanguage}
-      setOutputLanguage={setOutputLanguage}
-      uploadFile={uploadFile}
-      Loading={Loading}
-    />
-
-    {typeMessage && <h4>{typeMessage}</h4>}
-
-    {languageMessage && <h4>{languageMessage}</h4>}
-
-    {message && <h3>{message}</h3>}
-
-    {Loading && <SkeletonReport />}
-
-    {!Loading && report && (
-  analysisMode === "decision" ? (
-    <DecisionReport
-      report={report}
-      currentDocumentLanguage={currentDocumentLanguage}
-      currentOutputLanguage={currentOutputLanguage}
-    />
-  ) : (
-    <ReportDashboard
-      report={report}
-      currentDocumentLanguage={currentDocumentLanguage}
-      currentOutputLanguage={currentOutputLanguage}
-      documentLanguage={documentLanguage}
+  <div>
+    <Navbar
+      showComparison={showComparison}
+      setShowComparison={setShowComparison}
       analysisMode={analysisMode}
+      setAnalysisMode={setAnalysisMode}
+      comparisonMode={comparisonMode}
+      setComparisonMode={setComparisonMode}
+      appMode={appMode}
+      setAppMode={setAppMode}
     />
-  )
-)}
+
+    {appMode === "tax" ? (
+      <div className="container">
+        <TaxUpload />
+      </div>
+    ) : (
+      <>
+        {!showComparison && (
+          <div className="container">
+            <UploadCard
+              file={file}
+              setFile={setFile}
+              detectDocumentType={detectDocumentType}
+              detectDocumentLanguage={detectDocumentLanguage}
+              documentType={documentType}
+              setDocumentType={setDocumentType}
+              documentLanguage={documentLanguage}
+              setDocumentLanguage={setDocumentLanguage}
+              outputLanguage={outputLanguage}
+              setOutputLanguage={setOutputLanguage}
+              uploadFile={uploadFile}
+              Loading={Loading}
+            />
+
+            {typeMessage && <h4>{typeMessage}</h4>}
+
+            {languageMessage && <h4>{languageMessage}</h4>}
+
+            {message && <h3>{message}</h3>}
+
+            {Loading && <SkeletonReport />}
+
+            {!Loading && report && (
+              analysisMode === "decision" ? (
+                <DecisionReport
+                  report={report}
+                  currentDocumentLanguage={currentDocumentLanguage}
+                  currentOutputLanguage={currentOutputLanguage}
+                />
+              ) : (
+                <ReportDashboard
+                  report={report}
+                  currentDocumentLanguage={currentDocumentLanguage}
+                  currentOutputLanguage={currentOutputLanguage}
+                  documentLanguage={documentLanguage}
+                  analysisMode={analysisMode}
+                />
+              )
+            )}
+          </div>
+        )}
+
+        {showComparison && (
+          comparisonMode === "decision"
+            ? <DecisionComparison />
+            : <Comparison />
+        )}
+      </>
+    )}
   </div>
-)}
+);
 
-{showComparison && (
-  comparisonMode === "decision"
-    ? <DecisionComparison />
-    : <Comparison />
-)}
-
-    </div>
-  );
 }
 
 export default App;

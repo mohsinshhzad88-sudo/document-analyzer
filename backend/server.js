@@ -13,6 +13,10 @@ const getComparisonPrompt = require("./prompts/comparisonPrompts");
 const getDecisionComparisonPrompt = require("./prompts/decisionComparisonPrompts");
 
 const referenceClassifierPrompt = require("./prompts/referenceClassifierPrompt");
+const classifyTaxDocuments = require("./tax/taxClassifier");
+const extractTaxDocument = require("./tax/taxExtractor");
+const processTaxDocuments = require("./tax/processTaxDocuments");
+const analyzeTaxDocuments = require("./tax/taxAnalyzer");
 
 const app = express();
 
@@ -338,6 +342,208 @@ const result = JSON.parse(aiResult);
 
 });
   
+
+app.post(
+  "/api/tax/classify",
+  upload.array("documents", 10),
+  async (req, res) => {
+
+    try {
+
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "No documents uploaded"
+        });
+      }
+
+      const documents = await classifyTaxDocuments(
+        req.files,
+        groq
+      );
+
+      res.json({
+        success: true,
+        documentCount: documents.length,
+        documents
+      });
+
+    } catch (error) {
+
+      console.error("TAX CLASSIFICATION ERROR:", error);
+
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+
+    }
+
+  }
+);
+
+app.post(
+  "/api/tax/process",
+  upload.array("documents", 10),
+  async (req, res) => {
+
+    try {
+
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "No documents uploaded"
+        });
+      }
+
+      console.log(
+        "🧾 Processing tax documents:",
+        req.files.length
+      );
+
+      const documents =
+        await processTaxDocuments(
+          req.files,
+          groq
+        );
+
+      res.json({
+        success: true,
+        documentCount: documents.length,
+        documents
+      });
+
+    } catch (error) {
+
+      console.error(
+        "TAX PROCESSING ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+
+    }
+
+  }
+);
+
+
+app.post(
+  "/api/tax/analyze",
+  express.json(),
+  async (req, res) => {
+
+    try {
+
+      const documents = req.body.documents;
+
+      if (!documents || documents.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "No processed documents available"
+        });
+      }
+
+      console.log(
+        "🧠 Starting tax analysis for:",
+        documents.length,
+        "document(s)"
+      );
+
+      const analysis =
+        await analyzeTaxDocuments(
+          documents,
+          groq
+        );
+
+      res.json({
+        success: true,
+        documentCount: documents.length,
+        analysis
+      });
+
+    } catch (error) {
+
+      console.error(
+        "========== TAX ANALYSIS ERROR =========="
+      );
+
+      console.error(error);
+
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+
+    }
+
+  }
+);
+
+
+
+app.post(
+  "/api/tax/extract",
+  upload.array("documents", 10),
+  async (req, res) => {
+
+    try {
+
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "No documents uploaded"
+        });
+      }
+
+      const documentTypes =
+        JSON.parse(req.body.documentTypes || "[]");
+
+      const extractedDocuments = [];
+
+      for (let i = 0; i < req.files.length; i++) {
+
+        const file = req.files[i];
+
+        const documentType =
+          documentTypes[i] || "Other";
+
+        const extracted =
+          await extractTaxDocument(
+            file,
+            groq,
+            documentType
+          );
+
+        extractedDocuments.push(extracted);
+      }
+
+      res.json({
+        success: true,
+        documentCount: extractedDocuments.length,
+        documents: extractedDocuments
+      });
+
+    } catch (error) {
+
+      console.error(
+        "TAX EXTRACTION ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+);
+
+
+
    app.post("/api/evaluate", upload.fields([
   { name: "reference", maxCount: 1 },
   { name: "document", maxCount: 1 }
