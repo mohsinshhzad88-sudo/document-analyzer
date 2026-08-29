@@ -990,10 +990,10 @@ console.log("🔥 PDF DOWNLOAD COMPLETE 🔥");
             color: "white",
           }}
         >
-          <h2>🧠 Decision Analysis</h2>
+          <h2> Decision Analysis</h2>
 
           <p>
-            🌍{" "}
+            {" "}
             {currentDocumentLanguage ||
               documentLanguage ||
               "Not specified"}
@@ -1009,7 +1009,7 @@ console.log("🔥 PDF DOWNLOAD COMPLETE 🔥");
               fontWeight: "700",
             }}
           >
-            🎯 {report.confidence || 0}% Confidence
+             {report.confidence || 0}% Confidence
           </div>
 
           <br />
@@ -1028,13 +1028,13 @@ console.log("🔥 PDF DOWNLOAD COMPLETE 🔥");
             }}
             onClick={downloadPDF}
           >
-            📄 Download PDF
+             Download PDF
           </button>
         </div>
 
         {/* DECISION */}
         <div style={decisionCardStyle}>
-          <h3>🏆 Decision</h3>
+          <h3> Decision</h3>
 
           <div
             style={{
@@ -1069,37 +1069,37 @@ console.log("🔥 PDF DOWNLOAD COMPLETE 🔥");
 
         {/* OPTIONS */}
         <div style={decisionCardStyle}>
-          <h3>🔀 Options</h3>
+          <h3> Options</h3>
           {decisionList(report.options)}
         </div>
 
         {/* CRITERIA */}
         <div style={decisionCardStyle}>
-          <h3>🎯 Criteria</h3>
+          <h3> Criteria</h3>
           {decisionList(report.criteria)}
         </div>
 
         {/* EVIDENCE */}
         <div style={decisionCardStyle}>
-          <h3>🔎 Evidence</h3>
+          <h3> Evidence</h3>
           {decisionList(report.evidence, "✓")}
         </div>
 
         {/* TRADE-OFFS */}
         <div style={decisionCardStyle}>
-          <h3>⚖️ Trade-offs</h3>
+          <h3> Trade-offs</h3>
           {decisionList(report.tradeoffs || report.tradeOffs, "•")}
         </div>
 
         {/* RISKS */}
         <div style={decisionCardStyle}>
-          <h3>⚠️ Risks</h3>
+          <h3> Risks</h3>
           {decisionList(report.risks, "⚠️")}
         </div>
 
         {/* MISSING INFORMATION */}
         <div style={decisionCardStyle}>
-          <h3>❓ Missing Information</h3>
+          <h3> Missing Information</h3>
           {decisionList(
             report.missingInformation ||
               report.missing_information,
@@ -1109,7 +1109,7 @@ console.log("🔥 PDF DOWNLOAD COMPLETE 🔥");
 
         {/* RECOMMENDATION */}
         <div style={decisionCardStyle}>
-          <h3>💡 Recommendation</h3>
+          <h3> Recommendation</h3>
 
           <p
             style={{
@@ -1125,7 +1125,7 @@ console.log("🔥 PDF DOWNLOAD COMPLETE 🔥");
 
         {/* CONFIDENCE */}
         <div style={decisionCardStyle}>
-          <h3>🎯 Confidence</h3>
+          <h3> Confidence</h3>
 
           <div
             style={{
@@ -1186,7 +1186,7 @@ console.log("🔥 PDF DOWNLOAD COMPLETE 🔥");
                   }}
 >
         <h2>
-          📄 Document Audit Report
+           Document Audit Report
         </h2>
 
         <p>
@@ -1209,7 +1209,7 @@ console.log("🔥 PDF DOWNLOAD COMPLETE 🔥");
     fontSize: "14px",
   }}
 >
-  📄 Download PDF
+   Download PDF
 </button>
 
 <button onClick={testUrduJsPDF}>
@@ -1220,12 +1220,12 @@ console.log("🔥 PDF DOWNLOAD COMPLETE 🔥");
       </div>
 
 <div style={cardStyle}>
-  <h3>📄 Executive Summary</h3>
+  <h3> Executive Summary</h3>
   <p>{report.executiveSummary}</p>
 </div>
 
 <div style={cardStyle}>
-  <h3>🔍 Key Findings</h3>
+  <h3> Key Findings</h3>
 
   <ul>
     {report.keyFindings?.map((item,index)=>(
@@ -1240,7 +1240,7 @@ console.log("🔥 PDF DOWNLOAD COMPLETE 🔥");
 
 
       <SectionCard
-        icon="⚠️"
+        icon=""
         title="Risks"
       >
         {report.risks?.length > 0
@@ -1250,7 +1250,7 @@ console.log("🔥 PDF DOWNLOAD COMPLETE 🔥");
 
 
       <SectionCard
-        icon="💡"
+        icon=""
         title="Recommendations"
       >
         {renderList(
@@ -1259,7 +1259,7 @@ console.log("🔥 PDF DOWNLOAD COMPLETE 🔥");
         )}
       </SectionCard>
 <SectionCard
-  icon="📈"
+  icon=""
   title="Document Quality Analysis"
 >
 
@@ -1319,7 +1319,7 @@ transition:"0.5s"
      {/* Score */}
 
 <SectionCard
-icon="🏆"
+icon=""
 title="Overall Score"
 >
 

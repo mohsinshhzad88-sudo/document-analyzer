@@ -1646,11 +1646,11 @@ labelB: claimB
         <div>
 
           <h1>
-            ⚖️ Decision Comparison
+             Decision Comparison
           </h1>
 
           <p>
-            🌍{" "}
+            {" "}
             {currentOutputLanguage ||
               currentDocumentLanguage ||
               "Unknown"}
@@ -1691,7 +1691,7 @@ labelB: claimB
       <section className="decision-card">
 
         <h2>
-          ⚖️ The Two Positions
+           The Two Positions
         </h2>
 
         <div className="comparison-cards">
@@ -1927,7 +1927,7 @@ labelB: claimB
       <section className="decision-card">
 
         <h2>
-          🔎 Document A — Claims
+           Document A — Claims
         </h2>
 
         {report.documentA?.mainClaims?.length > 0 ? (
@@ -2011,7 +2011,7 @@ labelB: claimB
       <section className="decision-card">
 
         <h2>
-          🔎 Document B — Claims
+           Document B — Claims
         </h2>
 
         {report.documentB?.mainClaims?.length > 0 ? (
@@ -2097,7 +2097,7 @@ labelB: claimB
       <section className="decision-card">
 
         <h2>
-          🤝 Agreements
+           Agreements
         </h2>
 
         {report.agreements?.length > 0 ? (
@@ -2139,7 +2139,7 @@ labelB: claimB
       <section className="decision-card">
 
         <h2>
-          ⚔️ Genuine Disagreements
+           Genuine Disagreements
         </h2>
 
         {report.disagreements?.length > 0 ? (
@@ -2205,7 +2205,7 @@ labelB: claimB
       <section className="decision-card">
 
         <h2>
-          🧪 Methodological Differences
+           Methodological Differences
         </h2>
 
         {report.methodologicalDifferences?.length > 0 ? (
@@ -2264,7 +2264,7 @@ labelB: claimB
       <section className="decision-card">
 
         <h2>
-          ❓ Evidence Gaps
+           Evidence Gaps
         </h2>
 
         {report.evidenceGaps?.length > 0 ? (
@@ -2314,7 +2314,7 @@ labelB: claimB
       <section className="decision-card decision-main">
 
         <h2>
-          🧠 Final Resolution
+           Final Resolution
         </h2>
 
         <div className="decision-result">
@@ -2335,7 +2335,7 @@ labelB: claimB
       <section className="decision-card">
 
         <h2>
-          🔄 What Would Change the Result
+           What Would Change the Result
         </h2>
 
         {report.whatWouldChangeTheResult?.length > 0 ? (
@@ -2368,7 +2368,7 @@ labelB: claimB
       <section className="decision-card recommendation-card">
 
         <h2>
-          📋 Summary
+           Summary
         </h2>
 
         <p>
@@ -2384,7 +2384,7 @@ labelB: claimB
       <section className="decision-card confidence-card">
 
         <h2>
-          🎯 Confidence
+           Confidence
         </h2>
 
         <div className="confidence-number">

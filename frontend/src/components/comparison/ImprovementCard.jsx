@@ -4,7 +4,7 @@ function ImprovementCard({ items }) {
 
     <div className="comparison-card">
 
-      <h3>💡 Priority Improvements</h3>
+      <h3> Priority Improvements</h3>
 
 
       {(items || []).map((item,index)=>(

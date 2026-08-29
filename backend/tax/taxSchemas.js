@@ -13,27 +13,40 @@ const taxSchemas = {
     currency: null
   },
 
-  "Bank Statement": {
-    accountHolder: null,
-    bankName: null,
-    accountNumberMasked: null,
-    statementPeriod: null,
-    totalDeposits: null,
-    totalWithdrawals: null,
-    salaryCredits: null,
-    otherIncome: null,
-    currency: null
-  },
+ "Bank Statement": {
+  accountHolder: null,
+  bankName: null,
+  accountNumberMasked: null,
 
-  "Withholding Record": {
-    payerName: null,
-    recipientName: null,
-    taxYear: null,
-    incomeType: null,
-    grossAmount: null,
-    taxWithheld: null,
-    currency: null
-  },
+  statementPeriod: null,
+  taxYear: null,
+
+  openingBalance: null,
+  closingBalance: null,
+
+  totalDeposits: null,
+  totalWithdrawals: null,
+
+  currency: null,
+
+  salaryCredits: [],
+
+  otherIncome: [],
+
+  transactions: []
+},
+
+
+
+ "Withholding Record": {
+  taxpayerName: null,
+  taxCollector: null,
+  taxYear: null,
+  incomeType: null,
+  grossAmount: null,
+  taxWithheld: null,
+  currency: null
+},
 
   "Tax Document": {
     taxpayerName: null,

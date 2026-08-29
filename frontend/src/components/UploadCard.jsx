@@ -30,7 +30,7 @@ function UploadCard({
       />
 
       <label htmlFor="fileInput" className="file-button">
-        {file ? file.name : "📂 Choose Document"}
+        {file ? file.name : " Choose Document"}
       </label>
 
       <br />
@@ -121,7 +121,7 @@ function UploadCard({
         onClick={uploadFile}
         disabled={Loading}
       >
-        {Loading ? "⏳ Analyzing..." : "📄 Upload Document"}
+        {Loading ? " Analyzing..." : " Upload Document"}
       </button>
     </>
   );

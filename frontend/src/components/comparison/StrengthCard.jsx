@@ -5,7 +5,7 @@ function StrengthCard({ items }) {
 
   return (
     <div className="comparison-card">
-      <h3>✅ Correctly Matched</h3>
+      <h3> Correctly Matched</h3>
 
       {(items || []).map((item, index) => (
         <div className="accordion-item" key={index}>

@@ -8,7 +8,7 @@ function LoadingScreen() {
 
         <div className="loading-spinner"></div>
 
-        <h1>⚖️ Comparing Evidence</h1>
+        <h1> Comparing Evidence</h1>
 
         <p>
           Analyzing both documents, comparing their claims,

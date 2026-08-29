@@ -8,7 +8,7 @@ function UploadScreen({
   return (
     <div className="upload-screen">
 
-      <h1>⚖️ Decision Comparison</h1>
+      <h1> Decision Comparison</h1>
 
       <p>
         Compare competing claims and determine what the evidence actually supports.
@@ -19,7 +19,7 @@ function UploadScreen({
         {/* DOCUMENT A */}
         <div className="upload-box">
 
-          <h2>📄 Document A</h2>
+          <h2> Document A</h2>
 
           <p>
             First research paper, argument, or position.
@@ -27,7 +27,7 @@ function UploadScreen({
 
           {!documentA ? (
             <label className="file-button">
-              📄 Choose Document A
+               Choose Document A
 
               <input
                 type="file"
@@ -44,7 +44,7 @@ function UploadScreen({
             </label>
           ) : (
             <>
-              <p>📄 {documentA.name}</p>
+              <p> {documentA.name}</p>
 
               <p className="ready-text">
                 ✓ Ready
@@ -85,7 +85,7 @@ function UploadScreen({
         {/* DOCUMENT B */}
         <div className="upload-box">
 
-          <h2>📄 Document B</h2>
+          <h2> Document B</h2>
 
           <p>
             Second research paper, argument, or position.
@@ -93,7 +93,7 @@ function UploadScreen({
 
           {!documentB ? (
             <label className="file-button">
-              📄 Choose Document B
+               Choose Document B
 
               <input
                 type="file"
@@ -110,7 +110,7 @@ function UploadScreen({
             </label>
           ) : (
             <>
-              <p>📄 {documentB.name}</p>
+              <p> {documentB.name}</p>
 
               <p className="ready-text">
                 ✓ Ready
@@ -157,7 +157,7 @@ function UploadScreen({
         disabled={!documentA || !documentB}
         onClick={compareDocuments}
       >
-        ⚖️ Compare Evidence
+         Compare Evidence
       </button>
 
     </div>

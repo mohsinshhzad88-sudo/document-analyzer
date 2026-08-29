@@ -4,7 +4,7 @@ function SummaryCard({ text }) {
 
     <div className="comparison-card">
 
-      <h3>📝 AI Summary</h3>
+      <h3> AI Summary</h3>
 
       <p>
         {text}

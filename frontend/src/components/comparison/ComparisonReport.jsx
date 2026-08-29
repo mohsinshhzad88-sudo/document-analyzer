@@ -1054,13 +1054,13 @@ console.log("URDU TEST ELEMENT:", testUrdu);
         className="download-pdf-btn"
         onClick={downloadPDF}
          >
-       📄 Download PDF
+        Download PDF
        </button>
 
       <div className="report-header">
 
         <h1>
-          📊 AI Comparison Report
+           AI Comparison Report
         </h1>
 
         <p>

@@ -5,7 +5,7 @@ function MissingCard({ items }) {
 
   return (
     <div className="comparison-card">
-      <h3>❌ Missing Information</h3>
+      <h3> Missing Information</h3>
 
       {(items || []).map((item, index) => (
         <div className="accordion-item" key={index}>
@@ -20,7 +20,7 @@ function MissingCard({ items }) {
 
             <span className="accordion-right">
               <span className="importance">
-                🔴 {item.importance}
+                 {item.importance}
               </span>
 
               <span className="accordion-arrow">

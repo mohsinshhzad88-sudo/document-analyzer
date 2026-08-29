@@ -1819,7 +1819,7 @@ pdfElement.style.textAlign = "left";
         <div>
 
           <span className="tax-report-eyebrow">
-            🧾 TAX ASSESSMENT
+             TAX ASSESSMENT
           </span>
 
           <h1>
@@ -1848,7 +1848,7 @@ pdfElement.style.textAlign = "left";
             className="tax-pdf-button"
             onClick={downloadTaxPDF}
           >
-            📄 Download PDF
+             Download PDF
           </button>
 
         </div>
@@ -1867,7 +1867,7 @@ pdfElement.style.textAlign = "left";
           </span>
 
           <h2>
-            📊 Financial Overview
+             Financial Overview
           </h2>
 
         </div>
@@ -1925,7 +1925,7 @@ pdfElement.style.textAlign = "left";
           </span>
 
           <h2>
-            🚨 Attention Required
+             Attention Required
           </h2>
 
         </div>
@@ -2030,7 +2030,7 @@ pdfElement.style.textAlign = "left";
           </span>
 
           <h2>
-            ✅ Verified Evidence
+             Verified Evidence
           </h2>
 
         </div>
@@ -2085,7 +2085,7 @@ pdfElement.style.textAlign = "left";
           </span>
 
           <h2>
-            🧾 Tax Overview
+             Tax Overview
           </h2>
 
         </div>
@@ -2109,7 +2109,7 @@ pdfElement.style.textAlign = "left";
           </span>
 
           <h2>
-            💰 Income Sources
+             Income Sources
           </h2>
 
         </div>
@@ -2133,7 +2133,7 @@ pdfElement.style.textAlign = "left";
           </span>
 
           <h2>
-            ⚠️ Information Needed
+             Information Needed
           </h2>
 
         </div>
@@ -2158,7 +2158,7 @@ pdfElement.style.textAlign = "left";
           </span>
 
           <h2>
-            📄 Documents Reviewed
+             Documents Reviewed
           </h2>
 
         </div>
@@ -2217,7 +2217,7 @@ pdfElement.style.textAlign = "left";
           </span>
 
           <h2>
-            📋 Overall Assessment
+             Overall Assessment
           </h2>
 
         </div>
@@ -2241,7 +2241,7 @@ pdfElement.style.textAlign = "left";
           </span>
 
           <h2>
-            🎯 Confidence
+             Confidence
           </h2>
 
         </div>

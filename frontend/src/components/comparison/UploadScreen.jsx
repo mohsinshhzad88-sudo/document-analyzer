@@ -14,7 +14,7 @@ function UploadScreen({
     
         <div className="upload-screen">
 
-      <h1>📊 AI Document Evaluation</h1>
+      <h1> AI Document Evaluation</h1>
 
       <p>
         Evaluate documents against an active reference.
@@ -25,14 +25,14 @@ function UploadScreen({
       {/* Active Reference */}
 <div className="upload-box">
 
-  <h2>📘 Active Reference</h2>
+  <h2> Active Reference</h2>
 
   {!referenceFile ? (
     <>
       <p>No reference loaded.</p>
 
       <label className="file-button">
-        📘 Choose Reference
+         Choose Reference
 
         <input
           type="file"
@@ -49,7 +49,7 @@ function UploadScreen({
     </>
   ) : (
     <>
-      <p>📘 {referenceFile.name}</p>
+      <p> {referenceFile.name}</p>
 
       <p className="ready-text">
         ✓ Ready
@@ -86,14 +86,14 @@ function UploadScreen({
 </div>
       <div className="upload-box">
 
-  <h2>📄 Main Document</h2>
+  <h2> Main Document</h2>
 
   {!mainFile ? (
     <>
       <p>No document selected.</p>
 
       <label className="file-button">
-        📄 Choose Document
+         Choose Document
 
         <input
           type="file"
@@ -106,7 +106,7 @@ function UploadScreen({
     </>
   ) : (
     <>
-      <p>📄 {mainFile.name}</p>
+      <p> {mainFile.name}</p>
 
       <label className="file-button">
         Replace
@@ -130,7 +130,7 @@ function UploadScreen({
   disabled={!referenceFile || !mainFile}
   onClick={evaluateDocument}
 >
-  🤖 Evaluate Document
+   Evaluate Document
 </button>
     </div>
   );

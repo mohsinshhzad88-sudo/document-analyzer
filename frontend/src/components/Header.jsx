@@ -1,7 +1,7 @@
 function Header() {
   return (
     <header className="hero">
-      <h1>📄 Document Analyzer AI</h1>
+      <h1> Document Analyzer AI</h1>
 
       <p>
         AI-Powered Intelligent Document Auditing

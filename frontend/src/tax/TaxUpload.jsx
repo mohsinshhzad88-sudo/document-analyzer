@@ -278,7 +278,7 @@ return (
     <div className="tax-page-header">
 
       <div className="tax-eyebrow">
-        🧾 TAX ASSISTANT
+         TAX ASSISTANT
       </div>
 
       <h1>
@@ -324,7 +324,7 @@ return (
       <label className="tax-drop-zone">
 
         <div className="tax-upload-icon">
-          📄
+          
         </div>
 
         <div className="tax-drop-title">
@@ -336,7 +336,7 @@ return (
         </div>
 
         <span className="tax-browse-button">
-          📁 Browse Files
+           Browse Files
         </span>
 
         <input
@@ -387,7 +387,7 @@ return (
             >
 
               <div className="tax-file-icon">
-                📄
+                
               </div>
 
 
@@ -492,8 +492,8 @@ return (
           >
 
             {processing
-              ? "🧠 Processing Documents..."
-              : "🔎 Process Tax Documents"}
+              ? " Processing Documents..."
+              : " Process Tax Documents"}
 
           </button>
 
@@ -510,8 +510,8 @@ return (
           >
 
             {analyzing
-              ? "🧠 Analyzing Tax Documents..."
-              : "🧠 Analyze Tax Documents"}
+              ? " Analyzing Tax Documents..."
+              : " Analyze Tax Documents"}
 
           </button>
 

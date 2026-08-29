@@ -743,7 +743,7 @@ const textFont =
       <div className="decision-header">
 
         <div>
-          <h1>🧠 Decision Analysis</h1>
+          <h1> Decision Analysis</h1>
 
           <p>
             🌍{" "}
@@ -773,7 +773,7 @@ const textFont =
               fontSize: "14px",
             }}
           >
-            📄 Download PDF
+             Download PDF
           </button>
 
         </div>
@@ -785,7 +785,7 @@ const textFont =
 
       <section className="decision-card decision-main">
 
-        <h2>🏆 Decision</h2>
+        <h2> Decision</h2>
 
         <div className="decision-result">
           {report.decision ||
@@ -803,7 +803,7 @@ const textFont =
 
       <section className="decision-card">
 
-        <h2>🔀 Options</h2>
+        <h2> Options</h2>
 
         {report.options?.length > 0 ? (
           <ul>
@@ -822,7 +822,7 @@ const textFont =
 
       <section className="decision-card">
 
-        <h2>🎯 Criteria</h2>
+        <h2> Criteria</h2>
 
         {report.criteria?.length > 0 ? (
           <ul>
@@ -841,7 +841,7 @@ const textFont =
 
       <section className="decision-card">
 
-        <h2>🔎 Evidence</h2>
+        <h2> Evidence</h2>
 
         {report.evidence?.length > 0 ? (
           <ul>
@@ -862,7 +862,7 @@ const textFont =
 
       <section className="decision-card">
 
-        <h2>⚖️ Trade-offs</h2>
+        <h2> Trade-offs</h2>
 
         {report.tradeOffs?.length > 0 ? (
           <ul>
@@ -881,13 +881,13 @@ const textFont =
 
       <section className="decision-card">
 
-        <h2>⚠️ Risks</h2>
+        <h2> Risks</h2>
 
         {report.risks?.length > 0 ? (
           <ul>
             {report.risks.map((risk, index) => (
               <li key={index}>
-                ⚠️ {risk}
+                 {risk}
               </li>
             ))}
           </ul>
@@ -902,7 +902,7 @@ const textFont =
 
       <section className="decision-card">
 
-        <h2>❓ Missing Information</h2>
+        <h2> Missing Information</h2>
 
         {report.missingInformation?.length > 0 ? (
           <ul>
@@ -925,7 +925,7 @@ const textFont =
 
       <section className="decision-card recommendation-card">
 
-        <h2>💡 Recommendation</h2>
+        <h2> Recommendation</h2>
 
         <p>
           {report.recommendation ||
@@ -939,7 +939,7 @@ const textFont =
 
       <section className="decision-card confidence-card">
 
-        <h2>🎯 Confidence</h2>
+        <h2> Confidence</h2>
 
         <div className="confidence-number">
           {report.confidence ?? 0}%

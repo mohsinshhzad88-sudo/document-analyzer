@@ -1,4 +1,3 @@
-
 function taxAssessmentEngine(documents) {
 
   if (!documents || documents.length === 0) {
@@ -11,6 +10,29 @@ function taxAssessmentEngine(documents) {
    * ============================================
    */
 
+  function normalizeTaxYear(value) {
+
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    const text = String(value).trim();
+
+    const range = text.match(/^(\d{4})-(\d{4})$/);
+
+    if (range) {
+      return `${range[1]}-${range[2]}`;
+    }
+
+    const year = text.match(/^20\d{2}$/);
+
+    if (year) {
+      return year[0];
+    }
+
+    return null;
+  }
+
   function parseAmount(value) {
 
     if (value === null || value === undefined) {
@@ -18,7 +40,7 @@ function taxAssessmentEngine(documents) {
     }
 
     if (typeof value === "number") {
-      return value;
+      return Number.isFinite(value) ? value : null;
     }
 
     if (typeof value !== "string") {
@@ -38,6 +60,27 @@ function taxAssessmentEngine(documents) {
     return Number.isFinite(number) ? number : null;
   }
 
+  function normalizeTaxYear(value) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  const text = String(value).trim();
+
+  const range = text.match(/^(\d{4})-(\d{4})$/);
+
+  if (range) {
+    return `${range[1]}-${range[2]}`;
+  }
+
+  const year = text.match(/^20\d{2}$/);
+
+  if (year) {
+    return year[0];
+  }
+
+  return null;
+}
 
   function getFrequency(value) {
 
@@ -131,6 +174,37 @@ function taxAssessmentEngine(documents) {
    */
 
   const assessment = {
+
+    /*
+     * Indicates whether actual withholding
+     * information was found.
+     *
+     * IMPORTANT:
+     *
+     * Zero is valid evidence.
+     * null means unknown/missing.
+     */
+
+    withholdingInformationFound: false,
+
+    /*
+     * Dedicated withholding evidence.
+     *
+     * These records are NOT automatically
+     * treated as income.
+     */
+
+    withholdingEvidence: [],
+
+    /*
+     * Assessment completeness is separate
+     * from confidence.
+     */
+
+    completeness: {
+      status: "limited",
+      reason: null
+    },
 
     taxpayer: {
       name: null,
@@ -305,9 +379,6 @@ function taxAssessmentEngine(documents) {
        * ============================================
        * ANNUAL GROSS INCOME
        * ============================================
-       *
-       * Only annualize when the source explicitly
-       * indicates a recurring frequency.
        */
 
       if (gross.annualized !== null) {
@@ -346,7 +417,8 @@ function taxAssessmentEngine(documents) {
 
           type: "Salary deductions",
 
-          amount: deductions.amount,
+          amount:
+            deductions.amount,
 
           frequency:
             deductions.frequency,
@@ -433,12 +505,6 @@ function taxAssessmentEngine(documents) {
 
       }
 
-
-      /*
-       * Some extractors may return salaryCredits
-       * as a single string instead of an array.
-       */
-
       else if (
         data.salaryCredits
       ) {
@@ -520,6 +586,22 @@ function taxAssessmentEngine(documents) {
      * ============================================
      * WITHHOLDING RECORD
      * ============================================
+     *
+     * IMPORTANT:
+     *
+     * A withholding certificate is evidence of
+     * tax collection/withholding.
+     *
+     * The reported transaction/base amount is
+     * NOT automatically income.
+     *
+     * Example:
+     *
+     * Transaction amount = Rs. 189
+     * Tax collected      = Rs. 0
+     *
+     * This does NOT establish Rs. 189 as income.
+     * ============================================
      */
 
     if (type === "Withholding Record") {
@@ -528,6 +610,26 @@ function taxAssessmentEngine(documents) {
         createAmountObject(data.taxWithheld);
 
 
+      /*
+       * Zero is valid evidence.
+       *
+       * Therefore:
+       *
+       * 0 !== null
+       */
+
+      if (taxWithheld.amount !== null) {
+
+        assessment.withholdingInformationFound =
+          true;
+
+      }
+
+
+      /*
+       * Store the original withholding evidence.
+       */
+
       assessment.financialEvidence.push({
 
         type: "Withholding Record",
@@ -535,23 +637,97 @@ function taxAssessmentEngine(documents) {
         fileName:
           document.fileName || null,
 
-        payerName:
-          data.payerName || null,
+        taxpayerName:
+          data.taxpayerName || null,
+
+        taxCollector:
+          data.taxCollector || null,
 
         incomeType:
           data.incomeType || null,
 
+        taxYear:
+          data.taxYear || null,
+
         grossAmount:
-          data.grossAmount || null,
+          data.grossAmount !== null &&
+          data.grossAmount !== undefined
+            ? data.grossAmount
+            : null,
 
         taxWithheld:
-          data.taxWithheld || null,
+          data.taxWithheld !== null &&
+          data.taxWithheld !== undefined
+            ? data.taxWithheld
+            : null,
 
         currency:
           data.currency || null
 
       });
 
+
+      /*
+       * ============================================
+       * DEDICATED WITHHOLDING EVIDENCE
+       * ============================================
+       *
+       * Keep this separate from income.
+       */
+
+      if (
+        data.grossAmount !== null &&
+        data.grossAmount !== undefined
+      ) {
+
+        assessment.withholdingEvidence.push({
+
+          source: "Withholding Record",
+
+          fileName:
+            document.fileName || null,
+
+          taxpayerName:
+            data.taxpayerName || null,
+
+          collectorName:
+            data.taxCollector || null,
+
+          taxYear:
+            data.taxYear || null,
+
+          incomeType:
+            data.incomeType || null,
+
+          reportedAmount:
+            data.grossAmount,
+
+          taxWithheld:
+            data.taxWithheld !== null &&
+            data.taxWithheld !== undefined
+              ? data.taxWithheld
+              : null,
+
+          currency:
+            data.currency || null,
+
+          classification:
+            "Withholding transaction/base amount; not automatically treated as income"
+
+        });
+
+      }
+
+
+      /*
+       * ============================================
+       * TAX WITHHELD
+       * ============================================
+       *
+       * Only add explicitly reported amounts.
+       *
+       * Zero is therefore correctly preserved.
+       */
 
       if (
         taxWithheld.annualized !== null
@@ -605,12 +781,6 @@ function taxAssessmentEngine(documents) {
 
       });
 
-
-      /*
-       * Business income contributes to gross
-       * income only when an explicit annual value
-       * or recurring frequency is available.
-       */
 
       if (
         businessIncome.annualized !== null
@@ -676,13 +846,6 @@ function taxAssessmentEngine(documents) {
     /*
      * ============================================
      * TAX DOCUMENT
-     *
-     * Optional.
-     *
-     * If the user already has a tax document,
-     * we use it as evidence.
-     *
-     * The system does NOT require it.
      * ============================================
      */
 
@@ -757,11 +920,13 @@ function taxAssessmentEngine(documents) {
 
   }
 
-    /*
+
+  /*
    * ============================================
    * CONSISTENCY CHECKS
    * ============================================
    */
+
 
   /*
    * ============================================
@@ -769,7 +934,9 @@ function taxAssessmentEngine(documents) {
    * ============================================
    */
 
-  for (const employment of assessment.income.employment) {
+  for (
+    const employment of assessment.income.employment
+  ) {
 
     if (
       employment.source !== "Salary Record"
@@ -796,11 +963,6 @@ function taxAssessmentEngine(documents) {
       employment.netSalary?.amount ?? null;
 
 
-    /*
-     * Only perform the calculation when
-     * the required numeric values exist.
-     */
-
     if (
       gross !== null &&
       netSalary !== null
@@ -815,20 +977,21 @@ function taxAssessmentEngine(documents) {
 
 
       const difference =
-        Math.abs(calculatedNet - netSalary);
+        Math.abs(
+          calculatedNet -
+          netSalary
+        );
 
-
-      /*
-       * Allow a very small rounding difference.
-       */
 
       if (difference > 1) {
 
         assessment.inconsistencies.push({
 
-          type: "Salary Calculation Mismatch",
+          type:
+            "Salary Calculation Mismatch",
 
-          source: "Salary Record",
+          source:
+            "Salary Record",
 
           employer:
             employment.employerName || null,
@@ -861,6 +1024,7 @@ function taxAssessmentEngine(documents) {
 
   const bankSalaryAmounts = [];
 
+
   for (
     const employment of assessment.income.employment
   ) {
@@ -870,11 +1034,15 @@ function taxAssessmentEngine(documents) {
     ) {
 
       const amount =
-        parseAmount(employment.amount);
+        parseAmount(
+          employment.amount
+        );
 
       if (amount !== null) {
 
-        bankSalaryAmounts.push(amount);
+        bankSalaryAmounts.push(
+          amount
+        );
 
       }
 
@@ -884,6 +1052,7 @@ function taxAssessmentEngine(documents) {
 
 
   const salaryRecordNetAmounts = [];
+
 
   for (
     const employment of assessment.income.employment
@@ -918,12 +1087,16 @@ function taxAssessmentEngine(documents) {
       ) {
 
         if (
-          Math.abs(bankAmount - salaryAmount) > 1
+          Math.abs(
+            bankAmount -
+            salaryAmount
+          ) > 1
         ) {
 
           assessment.inconsistencies.push({
 
-            type: "Bank Salary Mismatch",
+            type:
+              "Bank Salary Mismatch",
 
             bankSalary:
               bankAmount,
@@ -955,20 +1128,6 @@ function taxAssessmentEngine(documents) {
    * ============================================
    * TAX YEAR VALIDATION
    * ============================================
-   *
-   * Pakistan normal tax year:
-   *
-   * July 1 → June 30
-   *
-   * The tax year is named after the
-   * calendar year in which June 30 falls.
-   *
-   * Example:
-   *
-   * July 1 2026 → June 30 2027
-   * = Tax Year 2027
-   *
-   * ============================================
    */
 
   function getPakistanTaxYearFromDate(date) {
@@ -981,9 +1140,13 @@ function taxAssessmentEngine(documents) {
       new Date(date);
 
     if (
-      Number.isNaN(parsed.getTime())
+      Number.isNaN(
+        parsed.getTime()
+      )
     ) {
+
       return null;
+
     }
 
     const month =
@@ -993,18 +1156,9 @@ function taxAssessmentEngine(documents) {
       parsed.getFullYear();
 
 
-    /*
-     * January through June
-     */
-
     if (month <= 6) {
       return year;
     }
-
-
-    /*
-     * July through December
-     */
 
     return year + 1;
 
@@ -1012,10 +1166,9 @@ function taxAssessmentEngine(documents) {
 
 
   /*
-   * Extract a likely date from a statement
-   * period such as:
-   *
-   * 1 July 2026 – 31 July 2026
+   * ============================================
+   * EXTRACT STATEMENT YEAR
+   * ============================================
    */
 
   function extractStatementYear(period) {
@@ -1045,14 +1198,6 @@ function taxAssessmentEngine(documents) {
       Number(match[1]);
 
 
-    /*
-     * If the statement contains July–December,
-     * the Pakistani tax year is the following year.
-     *
-     * For our current extractor we can safely
-     * detect July–December from the text.
-     */
-
     const lower =
       period.toLowerCase();
 
@@ -1077,8 +1222,9 @@ function taxAssessmentEngine(documents) {
 
 
   /*
-   * Compare bank statement tax year
-   * against the taxpayer tax year.
+   * ============================================
+   * BANK STATEMENT TAX YEAR VALIDATION
+   * ============================================
    */
 
   for (
@@ -1104,9 +1250,9 @@ function taxAssessmentEngine(documents) {
     ) {
 
       const declaredTaxYear =
-        Number(
-          assessment.taxpayer.taxYear
-        );
+  normalizeTaxYear(
+    assessment.taxpayer.taxYear
+  );
 
 
       if (
@@ -1115,7 +1261,8 @@ function taxAssessmentEngine(documents) {
 
         assessment.inconsistencies.push({
 
-          type: "Tax Year Mismatch",
+          type:
+            "Tax Year Mismatch",
 
           source:
             evidence.fileName,
@@ -1145,10 +1292,13 @@ function taxAssessmentEngine(documents) {
    * ============================================
    */
 
-  const taxpayerNames = new Set();
+  const taxpayerNames =
+    new Set();
 
 
-  for (const document of documents) {
+  for (
+    const document of documents
+  ) {
 
     if (
       !document ||
@@ -1173,7 +1323,9 @@ function taxAssessmentEngine(documents) {
     ];
 
 
-    for (const name of names) {
+    for (
+      const name of names
+    ) {
 
       if (
         name &&
@@ -1197,7 +1349,8 @@ function taxAssessmentEngine(documents) {
 
     assessment.inconsistencies.push({
 
-      type: "Taxpayer Name Conflict",
+      type:
+        "Taxpayer Name Conflict",
 
       names:
         [...taxpayerNames],
@@ -1216,7 +1369,8 @@ function taxAssessmentEngine(documents) {
    * ============================================
    */
 
-  const employers = new Set();
+  const employers =
+    new Set();
 
 
   for (
@@ -1243,7 +1397,8 @@ function taxAssessmentEngine(documents) {
 
     assessment.inconsistencies.push({
 
-      type: "Employer Conflict",
+      type:
+        "Employer Conflict",
 
       employers:
         [...employers],
@@ -1262,7 +1417,8 @@ function taxAssessmentEngine(documents) {
    * ============================================
    */
 
-  const salaryKeys = new Set();
+  const salaryKeys =
+    new Set();
 
 
   for (
@@ -1295,7 +1451,8 @@ function taxAssessmentEngine(documents) {
 
       assessment.inconsistencies.push({
 
-        type: "Duplicate Salary Evidence",
+        type:
+          "Duplicate Salary Evidence",
 
         employer:
           employment.employerName || null,
@@ -1333,7 +1490,8 @@ function taxAssessmentEngine(documents) {
 
       withholdingSources.push({
 
-        source: "Salary Record",
+        source:
+          "Salary Record",
 
         amount:
           employment.taxWithheld.amount
@@ -1363,7 +1521,8 @@ function taxAssessmentEngine(documents) {
 
         withholdingSources.push({
 
-          source: "Withholding Record",
+          source:
+            "Withholding Record",
 
           amount
 
@@ -1377,11 +1536,8 @@ function taxAssessmentEngine(documents) {
 
 
   /*
-   * If both salary records and withholding
-   * certificates report withholding, don't
-   * automatically add them together without
-   * determining whether they represent the
-   * same tax deduction.
+   * Multiple withholding documents do not
+   * automatically mean duplicate tax.
    */
 
   if (
@@ -1390,7 +1546,8 @@ function taxAssessmentEngine(documents) {
 
     assessment.inconsistencies.push({
 
-      type: "Potential Duplicate Withholding",
+      type:
+        "Potential Duplicate Withholding",
 
       sources:
         withholdingSources,
@@ -1402,18 +1559,34 @@ function taxAssessmentEngine(documents) {
 
   }
 
+
   /*
    * ============================================
    * MISSING INFORMATION
    * ============================================
+   *
+   * IMPORTANT:
+   *
+   * We distinguish between:
+   *
+   * "No evidence was submitted"
+   *
+   * and
+   *
+   * "The taxpayer has no such income."
+   *
+   * The system cannot establish the latter
+   * from an incomplete document set.
+   * ============================================
    */
+
 
   if (
     assessment.income.employment.length === 0
   ) {
 
     assessment.missingInformation.push(
-      "No employment income information was found."
+      "No employment-income evidence was submitted in the available documents."
     );
 
   }
@@ -1424,7 +1597,7 @@ function taxAssessmentEngine(documents) {
   ) {
 
     assessment.missingInformation.push(
-      "No business income information was found."
+      "No business-income evidence was submitted in the available documents."
     );
 
   }
@@ -1435,31 +1608,38 @@ function taxAssessmentEngine(documents) {
   ) {
 
     assessment.missingInformation.push(
-      "No property or rental income information was found."
-    );
-
-  }
-
-
-  if (
-    assessment.totals.taxWithheld === 0
-  ) {
-
-    assessment.missingInformation.push(
-      "No tax withholding information was found."
+      "No property or rental-income evidence was submitted in the available documents."
     );
 
   }
 
 
   /*
-   * IMPORTANT:
+   * ============================================
+   * WITHHOLDING INFORMATION
+   * ============================================
+   */
+
+  if (
+    !assessment.withholdingInformationFound
+  ) {
+
+    assessment.missingInformation.push(
+      "No tax withholding information was found in the available documents."
+    );
+
+  }
+
+
+  /*
+   * ============================================
+   * TAXABLE INCOME
+   * ============================================
    *
-   * We do NOT say taxable income is missing
-   * merely because there is no Tax Return.
-   *
-   * At this stage taxable income simply has
-   * not yet been calculated.
+   * A withholding certificate alone does not
+   * provide enough information to determine
+   * taxable income.
+   * ============================================
    */
 
   if (
@@ -1467,8 +1647,76 @@ function taxAssessmentEngine(documents) {
   ) {
 
     assessment.missingInformation.push(
-      "Taxable income has not yet been calculated from the available income and deduction information."
+      "Taxable income cannot be determined from the submitted documents because sufficient income and deduction evidence is not available."
     );
+
+  }
+
+
+  /*
+   * ============================================
+   * ASSESSMENT COMPLETENESS
+   * ============================================
+   */
+
+  const hasIncomeEvidence =
+    assessment.income.employment.length > 0 ||
+    assessment.income.business.length > 0 ||
+    assessment.income.property.length > 0 ||
+    assessment.income.other.length > 0;
+
+
+  const hasTaxReturnEvidence =
+    assessment.totals.taxableIncome !== null ||
+    assessment.totals.taxAssessed !== null ||
+    assessment.totals.taxDue !== null;
+
+
+  if (
+    hasIncomeEvidence &&
+    (
+      assessment.totals.taxableIncome !== null ||
+      assessment.deductions.length > 0
+    )
+  ) {
+
+    assessment.completeness = {
+
+      status: "substantial",
+
+      reason:
+        "The submitted documents contain classified income or deduction evidence sufficient for a more complete assessment."
+
+    };
+
+  }
+
+  else if (
+    hasIncomeEvidence ||
+    hasTaxReturnEvidence
+  ) {
+
+    assessment.completeness = {
+
+      status: "partial",
+
+      reason:
+        "Some relevant financial or tax information was submitted, but additional evidence is required for a complete assessment."
+
+    };
+
+  }
+
+  else {
+
+    assessment.completeness = {
+
+      status: "limited",
+
+      reason:
+        "The submitted documents do not contain sufficient income and deduction evidence to determine the taxpayer's overall tax position."
+
+    };
 
   }
 

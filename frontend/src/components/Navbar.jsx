@@ -33,7 +33,7 @@ function Navbar({
   return (
     <nav className="navbar">
       <div className="nav-logo">
-        📄 Document Analyzer AI
+         Document Analyzer AI
       </div>
 
       <div className="nav-links">
@@ -48,8 +48,8 @@ function Navbar({
             }}
           >
             {analysisMode === "decision"
-            ? "🧠 Decision Analysis"
-            : "📄 Document Analysis"}{" ▼"}
+            ? " Decision Analysis"
+            : " Document Analysis"}{" ▼"}
           </button>
 
           {showAnalyzeMenu && (
@@ -57,13 +57,13 @@ function Navbar({
               <button
                 onClick={() => selectAnalyzeMode("document")}
               >
-                📄 Document Analysis
+                 Document Analysis
               </button>
 
               <button
                 onClick={() => selectAnalyzeMode("decision")}
               >
-                🧠 Decision Analysis
+                 Decision Analysis
               </button>
             </div>
           )}
@@ -79,8 +79,8 @@ function Navbar({
             }}
           >
            {comparisonMode === "decision"
-            ? "🧠 Decision Comparison"
-           : "📄 Document Comparison"}{" ▼"}
+            ? " Decision Comparison"
+           : " Document Comparison"}{" ▼"}
           </button>
 
           {showCompareMenu && (
@@ -88,13 +88,13 @@ function Navbar({
               <button
                 onClick={() => selectComparisonMode("document")}
               >
-                📄 Document Comparison
+                 Document Comparison
               </button>
 
               <button
                 onClick={() => selectComparisonMode("decision")}
               >
-                🧠 Decision Comparison
+                 Decision Comparison
               </button>
             </div>
           )}
@@ -108,7 +108,7 @@ function Navbar({
                 setShowCompareMenu(false);
                     }}
                    >
-             🧾 Tax Assistant
+              Tax Assistant
                </button>
       </div>
     </nav>
